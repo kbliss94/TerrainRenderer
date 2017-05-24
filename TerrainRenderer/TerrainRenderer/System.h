@@ -12,9 +12,6 @@ using namespace std;
 
 namespace TerrainRenderer
 {
-	//!Global
-	static System* ApplicationHandle = 0;
-
 	class System
 	{
 	public:
@@ -70,6 +67,9 @@ namespace TerrainRenderer
 		Input* mInput;
 		Graphics* mGraphics;
 	};
+
+	//!Globals
+	static System* ApplicationHandle = 0;
 
 	//!Function prototypes
 	//!Sends all messages to MessageHandler()

@@ -15,7 +15,7 @@ namespace TerrainRenderer
 
 	System& System::operator=(const System& rhs)
 	{
-
+		return *this;
 	}
 
 	System::~System()
@@ -27,7 +27,6 @@ namespace TerrainRenderer
 	{
 		int screenWidth = 0;
 		int screenHeight = 0;
-		bool result;
 
 		InitializeWindows(screenWidth, screenHeight);
 
@@ -104,8 +103,6 @@ namespace TerrainRenderer
 
 	bool System::Frame()
 	{
-		bool result;
-
 		if (mInput->IsKeyDown(VK_ESCAPE))
 		{
 			return false;
@@ -120,9 +117,11 @@ namespace TerrainRenderer
 		{
 		case WM_KEYDOWN:
 			mInput->KeyDown(static_cast<unsigned int>(wparam));
+			return 0;
 			break;
 		case WM_KEYUP:
 			mInput->KeyUp(static_cast<unsigned int>(wparam));
+			return 0;
 			break;
 		default:
 			return DefWindowProc(hwnd, uint, wparam, lparam);
@@ -218,9 +217,11 @@ namespace TerrainRenderer
 		{
 		case WM_DESTROY:
 			PostQuitMessage(0);
+			return 0;
 			break;
 		case WM_CLOSE:
 			PostQuitMessage(0);
+			return 0;
 			break;
 		default:
 			return ApplicationHandle->MessageHandler(hwnd, uint, wparam, lparam);

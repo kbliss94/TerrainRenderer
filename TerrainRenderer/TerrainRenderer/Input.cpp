@@ -14,7 +14,7 @@ namespace TerrainRenderer
 
 	Input& Input::operator=(const Input& rhs)
 	{
-
+		return *this;
 	}
 
 	Input::~Input()

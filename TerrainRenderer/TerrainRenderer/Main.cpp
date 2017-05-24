@@ -26,7 +26,7 @@ namespace TerrainRenderer
 
 		system->Shutdown();
 		delete system;
-		system = 0;
+		system = nullptr;
 
 		return 0;
 	}
