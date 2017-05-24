@@ -2,36 +2,27 @@
 
 namespace TerrainRenderer
 {
-	//!Constructor
 	System::System() :
 		mInput(nullptr), mGraphics(nullptr)
 	{
-
+		//call initialize?
 	}
 
-	//!Copy constructor
 	System::System(const System& rhs)
 	{
 
 	}
 
-	//!Assignment operator
 	System& System::operator=(const System& rhs)
 	{
 
 	}
 
-	//!Destructor
 	System::~System()
 	{
 		//call shutdown windows?
 	}
 
-	//!Creates the window that will be used
-	/*!
-	Creates & initializes mInput & mGraphics
-	\return true if able to initialize & false otherwise
-	*/
 	bool System::Initialize()
 	{
 		int screenWidth = 0;
@@ -75,7 +66,6 @@ namespace TerrainRenderer
 		ShutdownWindows();
 	}
 
-	//!Does all application processing, which is done in Frame() which is called each loop
 	void System::Run()
 	{
 		MSG msg;
@@ -112,10 +102,6 @@ namespace TerrainRenderer
 		}
 	}
 
-	//!Handles application processing
-	/*!
-	\return true if mGraphics was able to process & false if the user pressed the Escape key
-	*/
 	bool System::Frame()
 	{
 		bool result;
@@ -128,10 +114,6 @@ namespace TerrainRenderer
 		return mGraphics->Frame();
 	}
 
-	//!Listens for certain information
-	/*!
-	Reads if a key is pressed/released & passes that information to mInput
-	*/
 	LRESULT CALLBACK System::MessageHandler(HWND hwnd, UINT uint, WPARAM wparam, LPARAM lparam)
 	{
 		switch (uint)
@@ -147,10 +129,6 @@ namespace TerrainRenderer
 		}
 	}
 
-	//!Building the window we want to render to
-	/*!
-	Currently displays a plain black window with no borders 
-	*/
 	void System::InitializeWindows(int& screenWidth, int& screenHeight)
 	{
 		DEVMODE screenSettings;
@@ -234,7 +212,6 @@ namespace TerrainRenderer
 		ApplicationHandle = nullptr;
 	}
 
-	//!Sends all messages to MessageHandler()
 	LRESULT CALLBACK WndProc(HWND hwnd, UINT uint, WPARAM wparam, LPARAM lparam)
 	{
 		switch (uint)
