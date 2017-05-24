@@ -12,23 +12,18 @@ namespace TerrainRenderer
 		System* system;
 		bool result;
 
-		//create the system object
 		system = new System;
-
 		if (!system)
 		{
 			return 0;
 		}
 
-		//initialize & run the system object
 		result = system->Initialize();
-
 		if (result)
 		{
 			system->Run();
 		}
 
-		//shut down & release the system object
 		system->Shutdown();
 		delete system;
 		system = 0;

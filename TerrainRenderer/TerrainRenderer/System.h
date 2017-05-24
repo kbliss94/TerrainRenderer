@@ -27,12 +27,12 @@ namespace TerrainRenderer
 		void Run();
 		void Shutdown();
 
-		LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
+		LRESULT CALLBACK MessageHandler(HWND hwnd, UINT uint, WPARAM wparam, LPARAM lparam);
 
 	private:
 		bool Frame();
 		/////figure out what to name these vars
-		void InitializeWindows(int&, int&);
+		void InitializeWindows(int& screenWidth, int& screenHeight);
 		void ShutdownWindows();
 
 		LPCWSTR mApplicationName;
@@ -44,7 +44,7 @@ namespace TerrainRenderer
 	};
 
 	//!Function prototypes
-	static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+	static LRESULT CALLBACK WndProc(HWND hwnd, UINT uint, WPARAM wparam, LPARAM lparam);
 }
 
 #endif
