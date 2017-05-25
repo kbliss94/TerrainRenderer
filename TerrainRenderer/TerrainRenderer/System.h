@@ -12,7 +12,7 @@ using namespace std;
 
 namespace TerrainRenderer
 {
-	class System
+	class System final
 	{
 	public:
 		//!Constructor

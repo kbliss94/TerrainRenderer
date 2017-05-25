@@ -3,12 +3,13 @@
 
 #pragma once
 #include <windows.h>
+#include "DirectX3D.h"
 
 using namespace std;
 
 namespace TerrainRenderer
 {
-	class Graphics
+	class Graphics final
 	{
 	public:
 		//!Constructor
@@ -23,12 +24,21 @@ namespace TerrainRenderer
 		//!Destructor
 		~Graphics();
 
-		bool Initialize(int width, int height, HWND hwnd);
+		bool Initialize(int screenWidth, int screenHeight, HWND hwnd);
+
 		void Shutdown();
+
+		//!Calls Render() each frame
+		/*!
+		\return true if able to render & false otherwise
+		*/
 		bool Frame();
 
 	private:
+		//!Clears the screen to a gray color
 		bool Render();
+
+		DirectX3D* mD3D;
 	};
 
 	//!Globals

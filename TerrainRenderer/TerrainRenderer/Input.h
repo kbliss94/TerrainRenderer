@@ -7,7 +7,7 @@ using namespace std;
 
 namespace TerrainRenderer
 {
-	class Input
+	class Input final
 	{
 	public:
 		//!Constructor
