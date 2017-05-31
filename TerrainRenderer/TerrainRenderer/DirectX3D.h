@@ -39,21 +39,21 @@ namespace TerrainRenderer
 		\param hwnd handle to the window
 		*/
 		bool Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, bool fullscreen, float screenDepth, float screenNear);
-	
+		
+		//!Releases and nulls out all member pointers
 		void Shutdown();
 
+		//!Initializes buffers so they are ready to be drawn to
 		void BeginScene(float r, float g, float b, float alpha);
 
+		//!Tells swap chain to display 3D scene once all drawing has completed at the end of each frame
 		void EndScene();
 
 		ID3D11Device* GetDevice();
-
 		ID3D11DeviceContext* GetDeviceContext();
-
 		void GetProjectionMatrix(D3DXMATRIX& matrix);
 		void GetWorldMatrix(D3DXMATRIX& matrix);
 		void GetOrthoMatrix(D3DXMATRIX& matrix);
-
 		void GetVideoCardInfo(char* cardName, int& memory);
 
 	private:
