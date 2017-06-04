@@ -6,7 +6,8 @@
 #include "DirectX3D.h"
 #include "Camera.h"
 #include "Model.h"
-#include "ColorShader.h"
+//#include "ColorShader.h"
+#include "TextureShader.h"
 
 using namespace std;
 
@@ -44,7 +45,8 @@ namespace TerrainRenderer
 		DirectX3D* mD3D;
 		Camera* mCamera;
 		Model* mModel;
-		ColorShader* mColorShader;
+		//ColorShader* mColorShader;
+		TextureShader* mTextureShader;
 	};
 
 	//!Globals

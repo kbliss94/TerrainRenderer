@@ -20,7 +20,7 @@ namespace TerrainRenderer
 
 	Timer::~Timer()
 	{
-
+		
 	}
 
 	bool Timer::Initialize()

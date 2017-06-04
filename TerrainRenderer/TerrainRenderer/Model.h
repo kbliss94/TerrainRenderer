@@ -5,6 +5,7 @@
 
 #include <d3d11.h>
 #include <D3DX10math.h>
+#include "Texture.h"
 
 using namespace std;
 
@@ -25,10 +26,13 @@ namespace TerrainRenderer
 		//!Destructor
 		~Model();
 
-		bool Initialize(ID3D11Device* device);
+		bool Initialize(ID3D11Device* device, WCHAR* filename);
 		void Shutdown();
 		void Render(ID3D11DeviceContext* context);
+
 		int GetIndexCount();
+		ID3D11ShaderResourceView* GetTexture();
+
 
 	private:
 		//!Creates the vertex & index buffers
@@ -36,14 +40,18 @@ namespace TerrainRenderer
 		void ShutdownBuffers();
 		void RenderBuffers(ID3D11DeviceContext* context);
 
+		bool LoadTexture(ID3D11Device* device, WCHAR* filename);
+		void ReleaseTexture();
+
 		struct VertexType
 		{
 			D3DXVECTOR3 position;
-			D3DXVECTOR4 color;
+			D3DXVECTOR2 texture;
 		};
 
 		ID3D11Buffer* mVertexBuffer, *mIndexBuffer;
 		int mVertexCount, mIndexCount;
+		Texture* mTexture;
 	};
 }
 

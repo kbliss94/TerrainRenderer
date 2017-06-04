@@ -3,7 +3,7 @@
 namespace TerrainRenderer
 {
 	Model::Model() :
-		mVertexBuffer(nullptr), mIndexBuffer(nullptr)
+		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mTexture(nullptr)
 	{
 		
 	}
@@ -23,13 +23,30 @@ namespace TerrainRenderer
 
 	}
 
-	bool Model::Initialize(ID3D11Device* device)
+	bool Model::Initialize(ID3D11Device* device, WCHAR* filename)
 	{
-		return InitializeBuffers(device);
+		bool result;
+
+		//initialing the vertex & index buffer that holds the geometry for the triangle
+		result = InitializeBuffers(device);
+		if (!result)
+		{
+			return false;
+		}
+
+		//loading the texture for this model
+		result = LoadTexture(device, filename);
+		if (!result)
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	void Model::Shutdown()
 	{
+		ReleaseTexture();
 		ShutdownBuffers();
 	}
 
@@ -41,6 +58,11 @@ namespace TerrainRenderer
 	int Model::GetIndexCount()
 	{
 		return mIndexCount;
+	}
+
+	ID3D11ShaderResourceView* Model::GetTexture()
+	{
+		return mTexture->GetTexture();
 	}
 
 	bool Model::InitializeBuffers(ID3D11Device* device)
@@ -68,15 +90,15 @@ namespace TerrainRenderer
 
 		//bottom left
 		vertices[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);
-		vertices[0].color = D3DXVECTOR4(0.0f, 0.0f, 1.0f, 1.0f);
+		vertices[0].texture = D3DXVECTOR2(0.0f, 1.0f);
 
 		//top middle
 		vertices[1].position = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-		vertices[1].color = D3DXVECTOR4(0.0f, 0.0f, 1.0f, 1.0f);
+		vertices[1].texture = D3DXVECTOR2(0.5f, 0.0f);
 
 		//bottom right
 		vertices[2].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
-		vertices[2].color = D3DXVECTOR4(0.0f, 0.0f, 1.0f, 1.0f);
+		vertices[2].texture = D3DXVECTOR2(1.0f, 1.0f);
 
 		indices[0] = 0;
 		indices[1] = 1;
@@ -153,5 +175,35 @@ namespace TerrainRenderer
 		context->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	}
+
+	bool Model::LoadTexture(ID3D11Device* device, WCHAR* filename)
+	{
+		bool result;
+
+		//setting up the texture object
+		mTexture = new Texture;
+		if (!mTexture)
+		{
+			return false;
+		}
+
+		result = mTexture->Initialize(device, filename);
+		if (!result)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	void Model::ReleaseTexture()
+	{
+		if (mTexture)
+		{
+			mTexture->Shutdown();
+			delete mTexture;
+			mTexture = nullptr;
+		}
 	}
 }

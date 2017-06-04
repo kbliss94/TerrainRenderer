@@ -3,7 +3,7 @@
 namespace TerrainRenderer
 {
 	Graphics::Graphics():
-		mD3D(nullptr), mCamera(nullptr), mModel(nullptr), mColorShader(nullptr)
+		mD3D(nullptr), mCamera(nullptr), mModel(nullptr), mTextureShader(nullptr)
 	{
 		//call initialize?
 	}
@@ -57,24 +57,24 @@ namespace TerrainRenderer
 			return false;
 		}
 
-		result = mModel->Initialize(mD3D->GetDevice());
+		result = mModel->Initialize(mD3D->GetDevice(), L"../TerrainRenderer/data/seafloor.dds");
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
 			return false;
 		}
 
-		//setting up the color shader object
-		mColorShader = new ColorShader;
-		if (!mColorShader)
+		//setting up the texture shader object
+		mTextureShader = new TextureShader;
+		if (!mTextureShader)
 		{
 			return false;
 		}
 
-		result = mColorShader->Initialize(mD3D->GetDevice(), hwnd);
+		result = mTextureShader->Initialize(mD3D->GetDevice(), hwnd);
 		if (!result)
 		{
-			MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
+			MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
 			return false;
 		}
 
@@ -83,11 +83,11 @@ namespace TerrainRenderer
 
 	void Graphics::Shutdown()
 	{
-		if (mColorShader)
+		if (mTextureShader)
 		{
-			mColorShader->Shutdown();
-			delete mColorShader;
-			mColorShader = nullptr;
+			mTextureShader->Shutdown();
+			delete mTextureShader;
+			mTextureShader = nullptr;
 		}
 
 		if (mModel)
@@ -132,14 +132,14 @@ namespace TerrainRenderer
 		//putting the model vertex/index buffers on the graphics pipeline to prepare them for drawing
 		mModel->Render(mD3D->GetDeviceContext());
 
-		//rendering the model using the color shader
-		result = mColorShader->Render(mD3D->GetDeviceContext(), mModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+		//rendering the model using the texture shader
+		result = mTextureShader->Render(mD3D->GetDeviceContext(), mModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, mModel->GetTexture());
 		if (!result)
 		{
 			return false;
 		}
 
-		//presents the rendered scene to the screen
+		//presenting the rendered scene to the screen
 		mD3D->EndScene();
 
 		return true;
