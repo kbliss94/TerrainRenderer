@@ -5,6 +5,9 @@
 #include <windows.h>
 #include "Graphics.h"
 #include "Input.h"
+#include "FPS.h"
+#include "CPU.h"
+#include "Timer.h"
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -66,6 +69,9 @@ namespace TerrainRenderer
 
 		Input* mInput;
 		Graphics* mGraphics;
+		FPS* mFPS;
+		CPU* mCPU;
+		Timer* mTimer;
 	};
 
 	//!Globals

@@ -3,7 +3,7 @@
 namespace TerrainRenderer
 {
 	System::System() :
-		mInput(nullptr), mGraphics(nullptr)
+		mInput(nullptr), mGraphics(nullptr), mFPS(nullptr), mCPU(nullptr), mTimer(nullptr)
 	{
 		//call initialize?
 	}
@@ -27,9 +27,11 @@ namespace TerrainRenderer
 	{
 		int screenWidth = 0;
 		int screenHeight = 0;
+		bool result;
 
 		InitializeWindows(screenWidth, screenHeight);
 
+		//setting up the Input object
 		mInput = new Input;
 		if (!mInput)
 		{
@@ -38,17 +40,75 @@ namespace TerrainRenderer
 
 		mInput->Initialize();
 
+		//setting up the Graphics object
 		mGraphics = new Graphics;
 		if (!mGraphics)
 		{
 			return false;
 		}
 
-		return mGraphics->Initialize(screenWidth, screenHeight, mHWND);
+		result = mGraphics->Initialize(screenWidth, screenHeight, mHWND);
+		if (!result)
+		{
+			return false;
+		}
+
+		//setting up the FPS object
+		mFPS = new FPS;
+		if (!mFPS)
+		{
+			return false;
+		}
+
+		mFPS->Initialize();
+
+		//setting up the CPU object
+		mCPU = new CPU;
+		if (!mCPU)
+		{
+			return false;
+		}
+
+		mCPU->Initialize();
+
+		//setting up the Timer object
+		mTimer = new Timer;
+		if (!mTimer)
+		{
+			return false;
+		}
+
+		result = mTimer->Initialize();
+		if (!result)
+		{
+			MessageBox(mHWND, L"Could not initialize the Timer object.", L"Error", MB_OK);
+			return false;
+		}
+
+		return true;
 	}
 
 	void System::Shutdown()
 	{
+		if (mTimer)
+		{
+			delete mTimer;
+			mTimer = nullptr;
+		}
+
+		if (mCPU)
+		{
+			mCPU->Shutdown();
+			delete mCPU;
+			mCPU = nullptr;
+		}
+
+		if (mFPS)
+		{
+			delete mFPS;
+			mFPS = nullptr;
+		}
+
 		if (mGraphics)
 		{
 			mGraphics->Shutdown();
@@ -103,12 +163,25 @@ namespace TerrainRenderer
 
 	bool System::Frame()
 	{
+		bool result;
+
+		//updating the system stats
+		mTimer->Frame();
+		mFPS->Frame();
+		mCPU->Frame();
+
 		if (mInput->IsKeyDown(VK_ESCAPE))
 		{
 			return false;
 		}
 
-		return mGraphics->Frame();
+		result = mGraphics->Frame();
+		if (!result)
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	LRESULT CALLBACK System::MessageHandler(HWND hwnd, UINT uint, WPARAM wparam, LPARAM lparam)

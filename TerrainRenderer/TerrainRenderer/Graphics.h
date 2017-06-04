@@ -1,9 +1,12 @@
-#ifndef _GRAPHICSCLASS_
-#define _GRAPHICSCLASS_
+#ifndef _GRAPHICS_
+#define _GRAPHICS_
 
 #pragma once
 #include <windows.h>
 #include "DirectX3D.h"
+#include "Camera.h"
+#include "Model.h"
+#include "ColorShader.h"
 
 using namespace std;
 
@@ -35,15 +38,18 @@ namespace TerrainRenderer
 		bool Frame();
 
 	private:
-		//!Clears the screen to a gray color
+		//!Creates a view matrix based on the camera's location & draws to the back buffer in order to render to the screen
 		bool Render();
 
 		DirectX3D* mD3D;
+		Camera* mCamera;
+		Model* mModel;
+		ColorShader* mColorShader;
 	};
 
 	//!Globals
 	const bool FULL_SCREEN = false;
-	const bool VSYNC_ENABLED = true;
+	const bool VSYNC_ENABLED = false;
 	const float SCREEN_DEPTH = 1000.0f;
 	const float SCREEN_NEAR = 0.1f;
 }

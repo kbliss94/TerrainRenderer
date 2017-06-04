@@ -1,5 +1,5 @@
-#ifndef _INPUTCLASS_
-#define _INPUTCLASS_
+#ifndef _INPUT_
+#define _INPUT_
 
 #pragma once
 
