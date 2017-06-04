@@ -3,7 +3,7 @@
 namespace TerrainRenderer
 {
 	Graphics::Graphics():
-		mD3D(nullptr), mCamera(nullptr), mModel(nullptr), mTextureShader(nullptr)
+		mD3D(nullptr), mCamera(nullptr), mModel(nullptr), mLightShader(nullptr), mLight(nullptr)
 	{
 		//call initialize?
 	}
@@ -64,30 +64,47 @@ namespace TerrainRenderer
 			return false;
 		}
 
-		//setting up the texture shader object
-		mTextureShader = new TextureShader;
-		if (!mTextureShader)
+		//setting up the light shader object
+		mLightShader = new LightShader;
+		if (!mLightShader)
 		{
 			return false;
 		}
 
-		result = mTextureShader->Initialize(mD3D->GetDevice(), hwnd);
+		result = mLightShader->Initialize(mD3D->GetDevice(), hwnd);
 		if (!result)
 		{
-			MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
+			MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
 			return false;
 		}
+
+		//setting up the light object
+		mLight = new Light;
+		if (!mLight)
+		{
+			return false;
+		}
+
+		//color of the light is set to purple & light direction is set to point down the positive z axis
+		mLight->SetDiffuseColor(1.0f, 0.0f, 1.0f, 1.0f);
+		mLight->SetDirection(0.0f, 0.0f, 1.0f);
 
 		return true;
 	}
 
 	void Graphics::Shutdown()
 	{
-		if (mTextureShader)
+		if (mLight)
 		{
-			mTextureShader->Shutdown();
-			delete mTextureShader;
-			mTextureShader = nullptr;
+			delete mLight;
+			mLight = nullptr;
+		}
+
+		if (mLightShader)
+		{
+			mLightShader->Shutdown();
+			delete mLightShader;
+			mLightShader = nullptr;
 		}
 
 		if (mModel)
@@ -113,10 +130,27 @@ namespace TerrainRenderer
 
 	bool Graphics::Frame()
 	{
-		return Render();
+		bool result;
+		static float rotation = 0.0f;
+
+		//updating the rotation variable each frame
+		rotation += static_cast<float>(D3DX_PI * 0.01f);
+		if (rotation > 360.0f)
+		{
+			rotation -= 360.0f;
+		}
+
+		//rendering the scene
+		result = Render(rotation);
+		if (!result)
+		{
+			return false;
+		}
+
+		return true;
 	}
 
-	bool Graphics::Render()
+	bool Graphics::Render(float rotation)
 	{
 		D3DXMATRIX viewMatrix, projectionMatrix, worldMatrix;
 		bool result;
@@ -129,11 +163,15 @@ namespace TerrainRenderer
 		mD3D->GetWorldMatrix(worldMatrix);
 		mD3D->GetProjectionMatrix(projectionMatrix);
 
+		//rotating the world matrix by the rotation value so that the triangle will spin
+		D3DXMatrixRotationY(&worldMatrix, rotation);
+
 		//putting the model vertex/index buffers on the graphics pipeline to prepare them for drawing
 		mModel->Render(mD3D->GetDeviceContext());
 
 		//rendering the model using the texture shader
-		result = mTextureShader->Render(mD3D->GetDeviceContext(), mModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, mModel->GetTexture());
+		result = mLightShader->Render(mD3D->GetDeviceContext(), mModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, mModel->GetTexture(),
+			mLight->GetDirection(), mLight->GetDiffuseColor());
 		if (!result)
 		{
 			return false;

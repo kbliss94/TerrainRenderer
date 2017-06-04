@@ -47,6 +47,7 @@ namespace TerrainRenderer
 		{
 			D3DXVECTOR3 position;
 			D3DXVECTOR2 texture;
+			D3DXVECTOR3 normal;
 		};
 
 		ID3D11Buffer* mVertexBuffer, *mIndexBuffer;

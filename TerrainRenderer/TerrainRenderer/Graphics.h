@@ -7,7 +7,9 @@
 #include "Camera.h"
 #include "Model.h"
 //#include "ColorShader.h"
-#include "TextureShader.h"
+//#include "TextureShader.h"
+#include "LightShader.h"
+#include "Light.h"
 
 using namespace std;
 
@@ -40,18 +42,20 @@ namespace TerrainRenderer
 
 	private:
 		//!Creates a view matrix based on the camera's location & draws to the back buffer in order to render to the screen
-		bool Render();
+		bool Render(float rotation);
 
 		DirectX3D* mD3D;
 		Camera* mCamera;
 		Model* mModel;
 		//ColorShader* mColorShader;
-		TextureShader* mTextureShader;
+		//TextureShader* mTextureShader;
+		LightShader* mLightShader;
+		Light* mLight;
 	};
 
 	//!Globals
 	const bool FULL_SCREEN = false;
-	const bool VSYNC_ENABLED = false;
+	const bool VSYNC_ENABLED = true;
 	const float SCREEN_DEPTH = 1000.0f;
 	const float SCREEN_NEAR = 0.1f;
 }
