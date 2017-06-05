@@ -13,6 +13,24 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{91e331f4-80ed-492b-8499-f3f951d9dd1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Shaders">
+      <UniqueIdentifier>{d296a8e0-3c6c-4424-ba4a-5e480618b672}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shaders\Color">
+      <UniqueIdentifier>{cc58ee08-9c8a-40eb-be17-a85d4758c9c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shaders\Light">
+      <UniqueIdentifier>{65b13d09-0873-43d0-9688-632fa2b0e515}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shaders\Texture">
+      <UniqueIdentifier>{04e27526-ccc6-4dbf-9fb4-70686805ccc4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shaders\Font">
+      <UniqueIdentifier>{5178494d-ac85-4a09-94a7-0b1719513e22}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -24,16 +42,10 @@
     <ClCompile Include="Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DirectX3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ColorShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
@@ -51,17 +63,38 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextureShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LightShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Bitmap.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorShader.cpp">
+      <Filter>Source Files\Shaders\Color</Filter>
+    </ClCompile>
+    <ClCompile Include="LightShader.cpp">
+      <Filter>Source Files\Shaders\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureShader.cpp">
+      <Filter>Source Files\Shaders\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Font.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Position.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FontShader.cpp">
+      <Filter>Source Files\Shaders\Font</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -71,16 +104,10 @@
     <ClInclude Include="Input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DirectX3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ColorShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
@@ -98,25 +125,64 @@
     <ClInclude Include="Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TextureShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LightShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Bitmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TextureShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LightShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Font.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Position.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FontShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="ColorVS.hlsl" />
-    <FxCompile Include="ColorPS.hlsl" />
-    <FxCompile Include="TextureVS.hlsl" />
-    <FxCompile Include="TexturePS.hlsl" />
-    <FxCompile Include="LightVS.hlsl" />
-    <FxCompile Include="LightPS.hlsl" />
+    <FxCompile Include="ColorPS.hlsl">
+      <Filter>Source Files\Shaders\Color</Filter>
+    </FxCompile>
+    <FxCompile Include="ColorVS.hlsl">
+      <Filter>Source Files\Shaders\Color</Filter>
+    </FxCompile>
+    <FxCompile Include="LightPS.hlsl">
+      <Filter>Source Files\Shaders\Light</Filter>
+    </FxCompile>
+    <FxCompile Include="LightVS.hlsl">
+      <Filter>Source Files\Shaders\Light</Filter>
+    </FxCompile>
+    <FxCompile Include="TexturePS.hlsl">
+      <Filter>Source Files\Shaders\Texture</Filter>
+    </FxCompile>
+    <FxCompile Include="TextureVS.hlsl">
+      <Filter>Source Files\Shaders\Texture</Filter>
+    </FxCompile>
+    <FxCompile Include="FontPS.hlsl">
+      <Filter>Source Files\Shaders\Font</Filter>
+    </FxCompile>
+    <FxCompile Include="FontVS.hlsl">
+      <Filter>Source Files\Shaders\Font</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -1,45 +1,51 @@
 #ifndef _INPUT_
 #define _INPUT_
 
-#pragma once
+#define DIRECTINPUT_VERSION 0x0800
 
-using namespace std;
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "dxguid.lib")
 
-namespace TerrainRenderer
+#include <dinput.h>
+
+class Input
 {
-	class Input final
-	{
-	public:
-		//!Constructor
-		Input();
+public:
+	Input();
+	Input(const Input&);
+	~Input();
 
-		//!Copy constructor
-		Input(const Input& rhs);
+	bool Initialize(HINSTANCE, HWND, int, int);
+	void Shutdown();
+	bool Frame();
 
-		//!Assignment operator
-		Input& operator=(const Input& rhs);
+	void GetMouseLocation(int&, int&);
 
-		//!Destructor
-		~Input();
+	bool IsEscapePressed();
+	bool IsLeftPressed();
+	bool IsRightPressed();
+	bool IsUpPressed();
+	bool IsDownPressed();
+	bool IsAPressed();
+	bool IsZPressed();
+	bool IsPgUpPressed();
+	bool IsPgDownPressed();
 
-		void Initialize();
+private:
+	bool ReadKeyboard();
+	bool ReadMouse();
+	void ProcessInput();
 
-		//!Records true in the key array if the corresponding key was pressed
-		void KeyDown(unsigned int input);
+private:
+	IDirectInput8* m_directInput;
+	IDirectInputDevice8* m_keyboard;
+	IDirectInputDevice8* m_mouse;
 
-		//!Records false in the key array if the corresponding key was released
-		void KeyUp(unsigned int input);
+	unsigned char m_keyboardState[256];
+	DIMOUSESTATE m_mouseState;
 
-		//!Returns state of the key specified
-		/*!
-		\return true if the key was pressed & false if the key was not pressed
-		*/
-		bool IsKeyDown(unsigned int key);
-
-	private:
-		const static int mKeyAmount = 256;
-		bool mKeys[mKeyAmount];
-	};
-}
+	int m_screenWidth, m_screenHeight;
+	int m_mouseX, m_mouseY;
+};
 
 #endif

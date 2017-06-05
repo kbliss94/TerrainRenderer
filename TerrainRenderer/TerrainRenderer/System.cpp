@@ -2,180 +2,118 @@
 
 namespace TerrainRenderer
 {
-	System::System() :
-		mInput(nullptr), mGraphics(nullptr), mFPS(nullptr), mCPU(nullptr), mTimer(nullptr)
+	System::System()
 	{
-		//call initialize?
+		m_Application = 0;
 	}
 
-	System::System(const System& rhs)
-	{
 
+	System::System(const System& other)
+	{
 	}
 
-	System& System::operator=(const System& rhs)
-	{
-		return *this;
-	}
 
 	System::~System()
 	{
-		//call shutdown windows?
 	}
+
 
 	bool System::Initialize()
 	{
-		int screenWidth = 0;
-		int screenHeight = 0;
+		int screenWidth, screenHeight;
 		bool result;
 
+
+		// Initialize the width and height of the screen to zero before sending the variables into the function.
+		screenWidth = 0;
+		screenHeight = 0;
+
+		// Initialize the windows api.
 		InitializeWindows(screenWidth, screenHeight);
 
-		//setting up the Input object
-		mInput = new Input;
-		if (!mInput)
+		// Create the application wrapper object.
+		m_Application = new Application;
+		if (!m_Application)
 		{
 			return false;
 		}
 
-		mInput->Initialize();
-
-		//setting up the Graphics object
-		mGraphics = new Graphics;
-		if (!mGraphics)
-		{
-			return false;
-		}
-
-		result = mGraphics->Initialize(screenWidth, screenHeight, mHWND);
+		// Initialize the application wrapper object.
+		result = m_Application->Initialize(m_hinstance, m_hwnd, screenWidth, screenHeight);
 		if (!result)
 		{
-			return false;
-		}
-
-		//setting up the FPS object
-		mFPS = new FPS;
-		if (!mFPS)
-		{
-			return false;
-		}
-
-		mFPS->Initialize();
-
-		//setting up the CPU object
-		mCPU = new CPU;
-		if (!mCPU)
-		{
-			return false;
-		}
-
-		mCPU->Initialize();
-
-		//setting up the Timer object
-		mTimer = new Timer;
-		if (!mTimer)
-		{
-			return false;
-		}
-
-		result = mTimer->Initialize();
-		if (!result)
-		{
-			MessageBox(mHWND, L"Could not initialize the Timer object.", L"Error", MB_OK);
 			return false;
 		}
 
 		return true;
 	}
 
+
 	void System::Shutdown()
 	{
-		if (mTimer)
+		// Release the application wrapper object.
+		if (m_Application)
 		{
-			delete mTimer;
-			mTimer = nullptr;
+			m_Application->Shutdown();
+			delete m_Application;
+			m_Application = 0;
 		}
 
-		if (mCPU)
-		{
-			mCPU->Shutdown();
-			delete mCPU;
-			mCPU = nullptr;
-		}
-
-		if (mFPS)
-		{
-			delete mFPS;
-			mFPS = nullptr;
-		}
-
-		if (mGraphics)
-		{
-			mGraphics->Shutdown();
-			delete mGraphics;
-			mGraphics = nullptr;
-		}
-
-		if (mInput)
-		{
-			delete mInput;
-			mInput = nullptr;
-		}
-
+		// Shutdown the window.
 		ShutdownWindows();
+
+		return;
 	}
+
 
 	void System::Run()
 	{
 		MSG msg;
-		bool done = false;
-		bool result;
+		bool done, result;
 
-		//initializing the message structure
+
+		// Initialize the message structure.
 		ZeroMemory(&msg, sizeof(MSG));
 
-		//looping until there's a quit message from the window or the user
+		// Loop until there is a quit message from the window or the user.
+		done = false;
 		while (!done)
 		{
-			//handling windows messages
+			// Handle the windows messages.
 			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			{
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
 
-			//exit if windows signals to end the application
+			// If windows signals to end the application then exit out.
 			if (msg.message == WM_QUIT)
 			{
 				done = true;
 			}
 			else
 			{
-				//frame processing
+				// Otherwise do the frame processing.
 				result = Frame();
 				if (!result)
 				{
 					done = true;
 				}
 			}
+
 		}
+
+		return;
 	}
+
 
 	bool System::Frame()
 	{
 		bool result;
 
-		//updating the system stats
-		mTimer->Frame();
-		mFPS->Frame();
-		mCPU->Frame();
 
-		if (mInput->IsKeyDown(VK_ESCAPE))
-		{
-			return false;
-		}
-
-		result = mGraphics->Frame();
+		// Do the frame processing for the application object.
+		result = m_Application->Frame();
 		if (!result)
 		{
 			return false;
@@ -184,120 +122,144 @@ namespace TerrainRenderer
 		return true;
 	}
 
-	LRESULT CALLBACK System::MessageHandler(HWND hwnd, UINT uint, WPARAM wparam, LPARAM lparam)
+
+	LRESULT CALLBACK System::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 	{
-		switch (uint)
-		{
-		case WM_KEYDOWN:
-			mInput->KeyDown(static_cast<unsigned int>(wparam));
-			return 0;
-			break;
-		case WM_KEYUP:
-			mInput->KeyUp(static_cast<unsigned int>(wparam));
-			return 0;
-			break;
-		default:
-			return DefWindowProc(hwnd, uint, wparam, lparam);
-		}
+		return DefWindowProc(hwnd, umsg, wparam, lparam);
 	}
+
 
 	void System::InitializeWindows(int& screenWidth, int& screenHeight)
 	{
-		DEVMODE screenSettings;
-		WNDCLASSEX window;
+		WNDCLASSEX wc;
+		DEVMODE dmScreenSettings;
 		int posX, posY;
 
+
+		// Get an external pointer to this object.	
 		ApplicationHandle = this;
-		mHInstance = GetModuleHandle(nullptr);
-		mApplicationName = L"Engine";
 
-		//setting up window with default settings
-		window.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-		window.lpfnWndProc = WndProc;
-		window.cbClsExtra = 0;
-		window.cbWndExtra = 0;
-		window.hInstance = mHInstance;
-		window.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
-		window.hIconSm = window.hIcon;
-		window.hCursor = LoadCursor(nullptr, IDC_ARROW);
-		window.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-		window.lpszMenuName = nullptr;
-		window.lpszClassName = mApplicationName;
-		window.cbSize = sizeof(WNDCLASSEX);
+		// Get the instance of this application.
+		m_hinstance = GetModuleHandle(NULL);
 
-		RegisterClassEx(&window);
+		// Give the application a name.
+		m_applicationName = L"Engine";
 
-		//determining the resolution of the desktop screen
+		// Setup the windows class with default settings.
+		wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		wc.lpfnWndProc = WndProc;
+		wc.cbClsExtra = 0;
+		wc.cbWndExtra = 0;
+		wc.hInstance = m_hinstance;
+		wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+		wc.hIconSm = wc.hIcon;
+		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+		wc.lpszMenuName = NULL;
+		wc.lpszClassName = m_applicationName;
+		wc.cbSize = sizeof(WNDCLASSEX);
+
+		// Register the window class.
+		RegisterClassEx(&wc);
+
+		// Determine the resolution of the clients desktop screen.
 		screenWidth = GetSystemMetrics(SM_CXSCREEN);
 		screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
+		// Setup the screen settings depending on whether it is running in full screen or in windowed mode.
 		if (FULL_SCREEN)
 		{
-			memset(&screenSettings, 0, sizeof(screenSettings));
-			screenSettings.dmSize = sizeof(screenSettings);
-			screenSettings.dmPelsWidth = static_cast<unsigned long>(screenWidth);
-			screenSettings.dmPelsHeight = static_cast<unsigned long>(screenHeight);
-			screenSettings.dmBitsPerPel = 32;
-			screenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+			// If full screen set the screen to maximum size of the users desktop and 32bit.
+			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+			dmScreenSettings.dmSize = sizeof(dmScreenSettings);
+			dmScreenSettings.dmPelsWidth = (unsigned long)screenWidth;
+			dmScreenSettings.dmPelsHeight = (unsigned long)screenHeight;
+			dmScreenSettings.dmBitsPerPel = 32;
+			dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
-			ChangeDisplaySettings(&screenSettings, CDS_FULLSCREEN);
+			// Change the display settings to full screen.
+			ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
 
-			//setting the position of the window to the top left corner
+			// Set the position of the window to the top left corner.
 			posX = posY = 0;
 		}
 		else
 		{
+			// If windowed then set it to 800x600 resolution.
 			screenWidth = 800;
 			screenHeight = 600;
 
-			//placing the window in the center of the screen
+			// Place the window in the middle of the screen.
 			posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
 			posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
 		}
 
-		mHWND = CreateWindowEx(WS_EX_APPWINDOW, mApplicationName, mApplicationName, WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP, 
-			posX, posY, screenWidth, screenHeight, nullptr, nullptr, mHInstance, nullptr);
+		// Create the window with the screen settings and get the handle to it.
+		m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName,
+			WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+			posX, posY, screenWidth, screenHeight, NULL, NULL, m_hinstance, NULL);
 
-		//bringing the window up on the screen & setting it as the main focus
-		ShowWindow(mHWND, SW_SHOW);
-		SetForegroundWindow(mHWND);
-		SetFocus(mHWND);
+		// Bring the window up on the screen and set it as main focus.
+		ShowWindow(m_hwnd, SW_SHOW);
+		SetForegroundWindow(m_hwnd);
+		SetFocus(m_hwnd);
 
+		// Hide the mouse cursor.
 		ShowCursor(false);
+
+		return;
 	}
+
 
 	void System::ShutdownWindows()
 	{
+		// Show the mouse cursor.
 		ShowCursor(true);
 
+		// Fix the display settings if leaving full screen mode.
 		if (FULL_SCREEN)
 		{
-			ChangeDisplaySettings(nullptr, 0);
+			ChangeDisplaySettings(NULL, 0);
 		}
 
-		DestroyWindow(mHWND);
-		mHWND = nullptr;
+		// Remove the window.
+		DestroyWindow(m_hwnd);
+		m_hwnd = NULL;
 
-		UnregisterClass(mApplicationName, mHInstance);
-		mHInstance = nullptr;
+		// Remove the application instance.
+		UnregisterClass(m_applicationName, m_hinstance);
+		m_hinstance = NULL;
 
-		ApplicationHandle = nullptr;
+		// Release the pointer to this class.
+		ApplicationHandle = NULL;
+
+		return;
 	}
 
-	LRESULT CALLBACK WndProc(HWND hwnd, UINT uint, WPARAM wparam, LPARAM lparam)
+
+	LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 	{
-		switch (uint)
+		switch (umessage)
 		{
+			// Check if the window is being destroyed.
 		case WM_DESTROY:
+		{
 			PostQuitMessage(0);
 			return 0;
-			break;
+		}
+
+		// Check if the window is being closed.
 		case WM_CLOSE:
+		{
 			PostQuitMessage(0);
 			return 0;
-			break;
+		}
+
+		// All other messages pass to the message handler in the system class.
 		default:
-			return ApplicationHandle->MessageHandler(hwnd, uint, wparam, lparam);
+		{
+			return ApplicationHandle->MessageHandler(hwnd, umessage, wparam, lparam);
+		}
 		}
 	}
 }

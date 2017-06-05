@@ -4,7 +4,8 @@ namespace TerrainRenderer
 {
 	DirectX3D::DirectX3D():
 		mSwapChain(nullptr), mDevice(nullptr), mDeviceContext(nullptr), mRenderTargetView(nullptr), mDepthStencilBuffer(nullptr),
-		mDepthStencilState(nullptr), mDepthStencilView(nullptr), mRasterState(nullptr), mDepthDisabledStencilState(nullptr)
+		mDepthStencilState(nullptr), mDepthStencilView(nullptr), mRasterState(nullptr), mDepthDisabledStencilState(nullptr),
+		mAlphaEnableBlendingState(nullptr), mAlphaDisableBlendingState(nullptr)
 	{
 
 	}
@@ -41,6 +42,7 @@ namespace TerrainRenderer
 		D3D11_RASTERIZER_DESC rasterDesc;
 		D3D11_VIEWPORT viewport;
 		D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
+		D3D11_BLEND_DESC blendStateDescription;
 
 		int error;
 		float fieldOfView, screenAspect;
@@ -364,6 +366,32 @@ namespace TerrainRenderer
 			return false;
 		}
 
+		ZeroMemory(&blendStateDescription, sizeof(D3D11_BLEND_DESC));
+
+		//setting up alpha enabled blend state
+		blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
+		blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+		blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+		result = mDevice->CreateBlendState(&blendStateDescription, &mAlphaEnableBlendingState);
+		if (FAILED(result))
+		{
+			return false;
+		}
+
+		blendStateDescription.RenderTarget[0].BlendEnable = FALSE;
+
+		result = mDevice->CreateBlendState(&blendStateDescription, &mAlphaDisableBlendingState);
+		if (FAILED(result))
+		{
+			return false;
+		}
+
 		return true;
 	}
 
@@ -372,6 +400,18 @@ namespace TerrainRenderer
 		if (mSwapChain)
 		{
 			mSwapChain->SetFullscreenState(FALSE, nullptr);
+		}
+
+		if (mAlphaEnableBlendingState)
+		{
+			mAlphaEnableBlendingState->Release();
+			mAlphaEnableBlendingState = nullptr;
+		}
+
+		if (mAlphaDisableBlendingState)
+		{
+			mAlphaDisableBlendingState->Release();
+			mAlphaDisableBlendingState = nullptr;
 		}
 
 		if (mDepthDisabledStencilState)
@@ -488,5 +528,29 @@ namespace TerrainRenderer
 	void DirectX3D::TurnZBufferOff()
 	{
 		mDeviceContext->OMSetDepthStencilState(mDepthDisabledStencilState, 1);
+	}
+
+	void DirectX3D::TurnOffAlphaBlending()
+	{
+		float blendFactor[4];
+
+		blendFactor[0] = 0.0f;
+		blendFactor[1] = 0.0f;
+		blendFactor[2] = 0.0f;
+		blendFactor[3] = 0.0f;
+
+		mDeviceContext->OMSetBlendState(mAlphaDisableBlendingState, blendFactor, 0xffffffff);
+	}
+
+	void DirectX3D::TurnOnAlphaBlending()
+	{
+		float blendFactor[4];
+
+		blendFactor[0] = 0.0f;
+		blendFactor[1] = 0.0f;
+		blendFactor[2] = 0.0f;
+		blendFactor[3] = 0.0f;
+
+		mDeviceContext->OMSetBlendState(mAlphaEnableBlendingState, blendFactor, 0xffffffff);
 	}
 }

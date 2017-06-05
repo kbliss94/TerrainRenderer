@@ -1,85 +1,40 @@
-#ifndef _SYSTEMCLASS_
-#define _SYSTEMCLASS_
-
-#pragma once
-#include <windows.h>
-#include "Graphics.h"
-#include "Input.h"
-#include "FPS.h"
-#include "CPU.h"
-#include "Timer.h"
+#ifndef _SYSTEMCLASS_H_
+#define _SYSTEMCLASS_H_
 
 #define WIN32_LEAN_AND_MEAN
 
-using namespace std;
+#include <windows.h>
+#include "Application.h"
 
 namespace TerrainRenderer
 {
-	class System final
+	class System
 	{
 	public:
-		//!Constructor
 		System();
-
-		//!Copy constructor
-		System(const System& rhs);
-
-		//!Assignment operator
-		System& operator=(const System& rhs);
-
-		//!Destructor
+		System(const System&);
 		~System();
 
-		//!Creates the window that will be used
-		/*!
-		Creates & initializes mInput & mGraphics
-		\return true if able to initialize & false otherwise
-		*/
 		bool Initialize();
-
-		//!Does all application processing, which is done in Frame() which is called each loop
+		void Shutdown();
 		void Run();
 
-		void Shutdown();
-
-		//!Listens for certain information
-		/*!
-		Reads if a key is pressed/released & passes that information to mInput
-		*/
-		LRESULT CALLBACK MessageHandler(HWND hwnd, UINT uint, WPARAM wparam, LPARAM lparam);
+		LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
 
 	private:
-		//!Handles application processing
-		/*!
-		\return true if mGraphics was able to process & false if the user pressed the Escape key
-		*/
 		bool Frame();
-
-		//!Building the window we want to render to
-		/*!
-		Currently displays a plain black window with no borders
-		*/
-		void InitializeWindows(int& screenWidth, int& screenHeight);
-
+		void InitializeWindows(int&, int&);
 		void ShutdownWindows();
 
-		LPCWSTR mApplicationName;
-		HINSTANCE mHInstance;
-		HWND mHWND;
-
-		Input* mInput;
-		Graphics* mGraphics;
-		FPS* mFPS;
-		CPU* mCPU;
-		Timer* mTimer;
+	private:
+		LPCWSTR m_applicationName;
+		HINSTANCE m_hinstance;
+		HWND m_hwnd;
+		Application* m_Application;
 	};
 
-	//!Globals
+	static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 	static System* ApplicationHandle = 0;
-
-	//!Function prototypes
-	//!Sends all messages to MessageHandler()
-	static LRESULT CALLBACK WndProc(HWND hwnd, UINT uint, WPARAM wparam, LPARAM lparam);
 }
 
 #endif

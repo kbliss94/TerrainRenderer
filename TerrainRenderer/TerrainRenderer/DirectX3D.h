@@ -59,6 +59,9 @@ namespace TerrainRenderer
 		void TurnZBufferOn();
 		void TurnZBufferOff();
 
+		void TurnOnAlphaBlending();
+		void TurnOffAlphaBlending();
+
 	private:
 		const static int mVCDescriptionSize = 128;
 		bool mVSyncEnabled;
@@ -76,6 +79,8 @@ namespace TerrainRenderer
 		D3DXMATRIX mWorldMatrix;
 		D3DXMATRIX mOrthoMatrix;
 		ID3D11DepthStencilState* mDepthDisabledStencilState;
+		ID3D11BlendState* mAlphaEnableBlendingState;
+		ID3D11BlendState* mAlphaDisableBlendingState;
 	};
 }
 
