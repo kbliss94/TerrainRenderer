@@ -56,6 +56,9 @@ namespace TerrainRenderer
 		void GetOrthoMatrix(D3DXMATRIX& matrix);
 		void GetVideoCardInfo(char* cardName, int& memory);
 
+		void TurnZBufferOn();
+		void TurnZBufferOff();
+
 	private:
 		const static int mVCDescriptionSize = 128;
 		bool mVSyncEnabled;
@@ -72,6 +75,7 @@ namespace TerrainRenderer
 		D3DXMATRIX mProjectionMatrix;
 		D3DXMATRIX mWorldMatrix;
 		D3DXMATRIX mOrthoMatrix;
+		ID3D11DepthStencilState* mDepthDisabledStencilState;
 	};
 }
 

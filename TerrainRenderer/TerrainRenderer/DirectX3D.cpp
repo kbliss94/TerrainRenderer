@@ -4,7 +4,7 @@ namespace TerrainRenderer
 {
 	DirectX3D::DirectX3D():
 		mSwapChain(nullptr), mDevice(nullptr), mDeviceContext(nullptr), mRenderTargetView(nullptr), mDepthStencilBuffer(nullptr),
-		mDepthStencilState(nullptr), mDepthStencilView(nullptr), mRasterState(nullptr)
+		mDepthStencilState(nullptr), mDepthStencilView(nullptr), mRasterState(nullptr), mDepthDisabledStencilState(nullptr)
 	{
 
 	}
@@ -40,6 +40,7 @@ namespace TerrainRenderer
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 		D3D11_RASTERIZER_DESC rasterDesc;
 		D3D11_VIEWPORT viewport;
+		D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
 
 		int error;
 		float fieldOfView, screenAspect;
@@ -339,6 +340,30 @@ namespace TerrainRenderer
 		//creating orthographic projection matrix; used for rendering 2D elements (UI)
 		D3DXMatrixOrthoLH(&mOrthoMatrix, static_cast<float>(screenWidth), static_cast<float>(screenHeight), screenNear, screenDepth);
 
+		//setting up the depth stencil
+		ZeroMemory(&depthDisabledStencilDesc, sizeof(depthDisabledStencilDesc));
+
+		depthDisabledStencilDesc.DepthEnable = false;
+		depthDisabledStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		depthDisabledStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+		depthDisabledStencilDesc.StencilEnable = true;
+		depthDisabledStencilDesc.StencilReadMask = 0xFF;
+		depthDisabledStencilDesc.StencilWriteMask = 0xFF;
+		depthDisabledStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		depthDisabledStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+		depthDisabledStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		depthDisabledStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		depthDisabledStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		depthDisabledStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+		depthDisabledStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+		result = mDevice->CreateDepthStencilState(&depthDisabledStencilDesc, &mDepthDisabledStencilState);
+		if (FAILED(result))
+		{
+			return false;
+		}
+
 		return true;
 	}
 
@@ -347,6 +372,12 @@ namespace TerrainRenderer
 		if (mSwapChain)
 		{
 			mSwapChain->SetFullscreenState(FALSE, nullptr);
+		}
+
+		if (mDepthDisabledStencilState)
+		{
+			mDepthDisabledStencilState->Release();
+			mDepthDisabledStencilState = nullptr;
 		}
 
 		if (mRasterState)
@@ -447,5 +478,15 @@ namespace TerrainRenderer
 	{
 		strcpy_s(cardName, mVCDescriptionSize, mVideoCardDescription);
 		memory = mVideoCardMemory;
+	}
+
+	void DirectX3D::TurnZBufferOn()
+	{
+		mDeviceContext->OMSetDepthStencilState(mDepthStencilState, 1);
+	}
+
+	void DirectX3D::TurnZBufferOff()
+	{
+		mDeviceContext->OMSetDepthStencilState(mDepthDisabledStencilState, 1);
 	}
 }

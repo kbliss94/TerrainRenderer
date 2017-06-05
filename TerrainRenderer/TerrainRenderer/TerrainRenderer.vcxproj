@@ -162,6 +162,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bitmap.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ColorShader.cpp" />
     <ClCompile Include="CPU.cpp" />
@@ -179,6 +180,7 @@
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bitmap.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ColorShader.h" />
     <ClInclude Include="CPU.h" />

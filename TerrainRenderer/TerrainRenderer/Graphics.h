@@ -5,11 +5,12 @@
 #include <windows.h>
 #include "DirectX3D.h"
 #include "Camera.h"
-#include "Model.h"
+////#include "Model.h"
 //#include "ColorShader.h"
-//#include "TextureShader.h"
-#include "LightShader.h"
-#include "Light.h"
+#include "TextureShader.h"
+////#include "LightShader.h"
+////#include "Light.h"
+#include "Bitmap.h"
 
 using namespace std;
 
@@ -46,11 +47,12 @@ namespace TerrainRenderer
 
 		DirectX3D* mD3D;
 		Camera* mCamera;
-		Model* mModel;
+		////Model* mModel;
 		//ColorShader* mColorShader;
-		//TextureShader* mTextureShader;
-		LightShader* mLightShader;
-		Light* mLight;
+		TextureShader* mTextureShader;
+		////LightShader* mLightShader;
+		////Light* mLight;
+		Bitmap* mBitmap;
 	};
 
 	//!Globals

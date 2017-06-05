@@ -3,7 +3,7 @@
 namespace TerrainRenderer
 {
 	Graphics::Graphics():
-		mD3D(nullptr), mCamera(nullptr), mModel(nullptr), mLightShader(nullptr), mLight(nullptr)
+		mD3D(nullptr), mCamera(nullptr), mTextureShader(nullptr), mBitmap(nullptr)
 	{
 		//call initialize?
 	}
@@ -50,68 +50,51 @@ namespace TerrainRenderer
 
 		mCamera->SetPosition(0.0f, 0.0f, -10.0f);
 
-		//setting up Model object
-		mModel = new Model;
-		if (!mModel)
+		//setting up TextureShader object
+		mTextureShader = new TextureShader;
+		if (!mTextureShader)
 		{
 			return false;
 		}
 
-		result = mModel->Initialize(mD3D->GetDevice(), L"../TerrainRenderer/data/seafloor.dds");
+		result = mTextureShader->Initialize(mD3D->GetDevice(), hwnd);
 		if (!result)
 		{
-			MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+			MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
 			return false;
 		}
 
-		//setting up the light shader object
-		mLightShader = new LightShader;
-		if (!mLightShader)
+		//setting up the Bitmap object
+		mBitmap = new Bitmap;
+		if (!mBitmap)
 		{
 			return false;
 		}
 
-		result = mLightShader->Initialize(mD3D->GetDevice(), hwnd);
+		result = mBitmap->Initialize(mD3D->GetDevice(), screenWidth, screenHeight, L"../TerrainRenderer/data/seafloor.dds", 256, 256);
 		if (!result)
 		{
-			MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
+			MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
 			return false;
 		}
-
-		//setting up the light object
-		mLight = new Light;
-		if (!mLight)
-		{
-			return false;
-		}
-
-		//color of the light is set to purple & light direction is set to point down the positive z axis
-		mLight->SetDiffuseColor(1.0f, 0.0f, 1.0f, 1.0f);
-		mLight->SetDirection(0.0f, 0.0f, 1.0f);
 
 		return true;
 	}
 
 	void Graphics::Shutdown()
 	{
-		if (mLight)
+		if (mBitmap)
 		{
-			delete mLight;
-			mLight = nullptr;
+			mBitmap->Shutdown();
+			delete mBitmap;
+			mBitmap = nullptr;
 		}
 
-		if (mLightShader)
+		if (mTextureShader)
 		{
-			mLightShader->Shutdown();
-			delete mLightShader;
-			mLightShader = nullptr;
-		}
-
-		if (mModel)
-		{
-			mModel->Shutdown();
-			delete mModel;
-			mModel = nullptr;
+			mTextureShader->Shutdown();
+			delete mTextureShader;
+			mTextureShader = nullptr;
 		}
 
 		if (mCamera)
@@ -152,7 +135,7 @@ namespace TerrainRenderer
 
 	bool Graphics::Render(float rotation)
 	{
-		D3DXMATRIX viewMatrix, projectionMatrix, worldMatrix;
+		D3DXMATRIX viewMatrix, projectionMatrix, worldMatrix, orthoMatrix;
 		bool result;
 
 		mD3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
@@ -163,19 +146,24 @@ namespace TerrainRenderer
 		mD3D->GetWorldMatrix(worldMatrix);
 		mD3D->GetProjectionMatrix(projectionMatrix);
 
-		//rotating the world matrix by the rotation value so that the triangle will spin
-		D3DXMatrixRotationY(&worldMatrix, rotation);
+		//getting the ortho matrix for 2D rendering to pass in instead of the projection matrix
+		mD3D->GetOrthoMatrix(orthoMatrix);
 
-		//putting the model vertex/index buffers on the graphics pipeline to prepare them for drawing
-		mModel->Render(mD3D->GetDeviceContext());
+		mD3D->TurnZBufferOff();
 
-		//rendering the model using the texture shader
-		result = mLightShader->Render(mD3D->GetDeviceContext(), mModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, mModel->GetTexture(),
-			mLight->GetDirection(), mLight->GetDiffuseColor());
+		result = mBitmap->Render(mD3D->GetDeviceContext(), 100, 100);
 		if (!result)
 		{
 			return false;
 		}
+
+		result = mTextureShader->Render(mD3D->GetDeviceContext(), mBitmap->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, mBitmap->GetTexture());
+		if (!result)
+		{
+			return false;
+		}
+
+		mD3D->TurnZBufferOn();
 
 		//presenting the rendered scene to the screen
 		mD3D->EndScene();
