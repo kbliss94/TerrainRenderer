@@ -2,31 +2,41 @@
 
 namespace TerrainRenderer 
 {
-	Terrain::Terrain()
+	Terrain::Terrain(): 
+		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mHeightMap(nullptr)
 	{
-		m_vertexBuffer = 0;
-		m_indexBuffer = 0;
+
 	}
 
-
-	Terrain::Terrain(const Terrain& other)
+	Terrain::Terrain(const Terrain& rhs)
 	{
+
 	}
 
+	Terrain& Terrain::operator=(const Terrain& rhs)
+	{
+		return *this;
+	}
 
 	Terrain::~Terrain()
 	{
+
 	}
 
-
-	bool Terrain::Initialize(ID3D11Device* device)
+	bool Terrain::Initialize(ID3D11Device* device, char* heightMapFilename)
 	{
 		bool result;
 
 
-		// Manually set the width and height of the terrain.
-		m_terrainWidth = 100;
-		m_terrainHeight = 100;
+		// Load in the height map for the terrain.
+		result = LoadHeightMap(heightMapFilename);
+		if (!result)
+		{
+			return false;
+		}
+
+		// Normalize the height of the height map.
+		NormalizeHeightMap();
 
 		// Initialize the vertex and index buffer that hold the geometry for the terrain.
 		result = InitializeBuffers(device);
@@ -44,14 +54,17 @@ namespace TerrainRenderer
 		// Release the vertex and index buffer.
 		ShutdownBuffers();
 
+		// Release the height map data.
+		ShutdownHeightMap();
+
 		return;
 	}
 
 
-	void Terrain::Render(ID3D11DeviceContext* deviceContext)
+	void Terrain::Render(ID3D11DeviceContext* context)
 	{
 		// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
-		RenderBuffers(deviceContext);
+		RenderBuffers(context);
 
 		return;
 	}
@@ -59,7 +72,135 @@ namespace TerrainRenderer
 
 	int Terrain::GetIndexCount()
 	{
-		return m_indexCount;
+		return mIndexCount;
+	}
+
+
+	bool Terrain::LoadHeightMap(char* filename)
+	{
+		FILE* filePtr;
+		int error;
+		unsigned int count;
+		BITMAPFILEHEADER bitmapFileHeader;
+		BITMAPINFOHEADER bitmapInfoHeader;
+		int imageSize, i, j, k, index;
+		unsigned char* bitmapImage;
+		unsigned char height;
+
+
+		// Open the height map file in binary.
+		error = fopen_s(&filePtr, filename, "rb");
+		if (error != 0)
+		{
+			return false;
+		}
+
+		// Read in the file header.
+		count = fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr);
+		if (count != 1)
+		{
+			return false;
+		}
+
+		// Read in the bitmap info header.
+		count = fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr);
+		if (count != 1)
+		{
+			return false;
+		}
+
+		// Save the dimensions of the terrain.
+		mTerrainWidth = bitmapInfoHeader.biWidth;
+		mTerrainHeight = bitmapInfoHeader.biHeight;
+
+		// Calculate the size of the bitmap image data.
+		imageSize = mTerrainWidth * mTerrainHeight * 3;
+
+		// Allocate memory for the bitmap image data.
+		bitmapImage = new unsigned char[imageSize];
+		if (!bitmapImage)
+		{
+			return false;
+		}
+
+		// Move to the beginning of the bitmap data.
+		fseek(filePtr, bitmapFileHeader.bfOffBits, SEEK_SET);
+
+		// Read in the bitmap image data.
+		count = fread(bitmapImage, 1, imageSize, filePtr);
+		if (count != imageSize)
+		{
+			return false;
+		}
+
+		// Close the file.
+		error = fclose(filePtr);
+		if (error != 0)
+		{
+			return false;
+		}
+
+		// Create the structure to hold the height map data.
+		mHeightMap = new HeightMapType[mTerrainWidth * mTerrainHeight];
+		if (!mHeightMap)
+		{
+			return false;
+		}
+
+		// Initialize the position in the image data buffer.
+		k = 0;
+
+		// Read the image data into the height map.
+		for (j = 0; j < mTerrainHeight; j++)
+		{
+			for (i = 0; i < mTerrainWidth; i++)
+			{
+				height = bitmapImage[k];
+
+				index = (mTerrainHeight * j) + i;
+
+				mHeightMap[index].x = (float)i;
+				mHeightMap[index].y = (float)height;
+				mHeightMap[index].z = (float)j;
+
+				k += 3;
+			}
+		}
+
+		// Release the bitmap image data.
+		delete[] bitmapImage;
+		bitmapImage = 0;
+
+		return true;
+	}
+
+
+	void Terrain::NormalizeHeightMap()
+	{
+		int i, j;
+
+
+		for (j = 0; j < mTerrainHeight; j++)
+		{
+			for (i = 0; i < mTerrainWidth; i++)
+			{
+				mHeightMap[(mTerrainHeight * j) + i].y /= 15.0f;
+			}
+		}
+
+		return;
+	}
+
+
+	void Terrain::ShutdownHeightMap()
+	{
+		if (mHeightMap)
+		{
+			delete[] mHeightMap;
+			mHeightMap = 0;
+		}
+
+		return;
 	}
 
 
@@ -68,112 +209,113 @@ namespace TerrainRenderer
 		VertexType* vertices;
 		unsigned long* indices;
 		int index, i, j;
-		float positionX, positionZ;
 		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 		D3D11_SUBRESOURCE_DATA vertexData, indexData;
 		HRESULT result;
+		int index1, index2, index3, index4;
 
 
 		// Calculate the number of vertices in the terrain mesh.
-		m_vertexCount = (m_terrainWidth - 1) * (m_terrainHeight - 1) * 8;
+		mVertexCount = (mTerrainWidth - 1) * (mTerrainHeight - 1) * 12;
 
 		// Set the index count to the same as the vertex count.
-		m_indexCount = m_vertexCount;
+		mIndexCount = mVertexCount;
 
 		// Create the vertex array.
-		vertices = new VertexType[m_vertexCount];
+		vertices = new VertexType[mVertexCount];
 		if (!vertices)
 		{
 			return false;
 		}
 
 		// Create the index array.
-		indices = new unsigned long[m_indexCount];
+		indices = new unsigned long[mIndexCount];
 		if (!indices)
 		{
 			return false;
 		}
 
-		// Initialize the index to the vertex array.
+		// Initialize the index to the vertex buffer.
 		index = 0;
 
-		// Load the vertex and index arrays with the terrain data.
-		for (j = 0; j < (m_terrainHeight - 1); j++)
+		// Load the vertex and index array with the terrain data.
+		for (j = 0; j < (mTerrainHeight - 1); j++)
 		{
-			for (i = 0; i < (m_terrainWidth - 1); i++)
+			for (i = 0; i < (mTerrainWidth - 1); i++)
 			{
-				// LINE 1
-				// Upper left.
-				positionX = (float)i;
-				positionZ = (float)(j + 1);
+				index1 = (mTerrainHeight * j) + i;          // Bottom left.
+				index2 = (mTerrainHeight * j) + (i + 1);      // Bottom right.
+				index3 = (mTerrainHeight * (j + 1)) + i;      // Upper left.
+				index4 = (mTerrainHeight * (j + 1)) + (i + 1);  // Upper right.
 
-				vertices[index].position = D3DXVECTOR3(positionX, 0.0f, positionZ);
+																 // Upper left.
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index3].x, mHeightMap[index3].y, mHeightMap[index3].z);
 				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
-				positionX = (float)(i + 1);
-				positionZ = (float)(j + 1);
-
-				vertices[index].position = D3DXVECTOR3(positionX, 0.0f, positionZ);
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index4].x, mHeightMap[index4].y, mHeightMap[index4].z);
 				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
 				indices[index] = index;
 				index++;
 
-				// LINE 2
 				// Upper right.
-				positionX = (float)(i + 1);
-				positionZ = (float)(j + 1);
-
-				vertices[index].position = D3DXVECTOR3(positionX, 0.0f, positionZ);
-				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
-
-				// Bottom right.
-				positionX = (float)(i + 1);
-				positionZ = (float)j;
-
-				vertices[index].position = D3DXVECTOR3(positionX, 0.0f, positionZ);
-				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
-
-				// LINE 3
-				// Bottom right.
-				positionX = (float)(i + 1);
-				positionZ = (float)j;
-
-				vertices[index].position = D3DXVECTOR3(positionX, 0.0f, positionZ);
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index4].x, mHeightMap[index4].y, mHeightMap[index4].z);
 				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
-				positionX = (float)i;
-				positionZ = (float)j;
-
-				vertices[index].position = D3DXVECTOR3(positionX, 0.0f, positionZ);
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index1].x, mHeightMap[index1].y, mHeightMap[index1].z);
 				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
 				indices[index] = index;
 				index++;
 
-				// LINE 4
 				// Bottom left.
-				positionX = (float)i;
-				positionZ = (float)j;
-
-				vertices[index].position = D3DXVECTOR3(positionX, 0.0f, positionZ);
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index1].x, mHeightMap[index1].y, mHeightMap[index1].z);
 				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
 				indices[index] = index;
 				index++;
 
 				// Upper left.
-				positionX = (float)i;
-				positionZ = (float)(j + 1);
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index3].x, mHeightMap[index3].y, mHeightMap[index3].z);
+				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+				indices[index] = index;
+				index++;
 
-				vertices[index].position = D3DXVECTOR3(positionX, 0.0f, positionZ);
+				// Bottom left.
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index1].x, mHeightMap[index1].y, mHeightMap[index1].z);
+				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+				indices[index] = index;
+				index++;
+
+				// Upper right.
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index4].x, mHeightMap[index4].y, mHeightMap[index4].z);
+				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+				indices[index] = index;
+				index++;
+
+				// Upper right.
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index4].x, mHeightMap[index4].y, mHeightMap[index4].z);
+				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+				indices[index] = index;
+				index++;
+
+				// Bottom right.
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index2].x, mHeightMap[index2].y, mHeightMap[index2].z);
+				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+				indices[index] = index;
+				index++;
+
+				// Bottom right.
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index2].x, mHeightMap[index2].y, mHeightMap[index2].z);
+				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+				indices[index] = index;
+				index++;
+
+				// Bottom left.
+				vertices[index].position = D3DXVECTOR3(mHeightMap[index1].x, mHeightMap[index1].y, mHeightMap[index1].z);
 				vertices[index].color = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
 				indices[index] = index;
 				index++;
@@ -182,7 +324,7 @@ namespace TerrainRenderer
 
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
+		vertexBufferDesc.ByteWidth = sizeof(VertexType) * mVertexCount;
 		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vertexBufferDesc.CPUAccessFlags = 0;
 		vertexBufferDesc.MiscFlags = 0;
@@ -194,7 +336,7 @@ namespace TerrainRenderer
 		vertexData.SysMemSlicePitch = 0;
 
 		// Now create the vertex buffer.
-		result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
+		result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &mVertexBuffer);
 		if (FAILED(result))
 		{
 			return false;
@@ -202,7 +344,7 @@ namespace TerrainRenderer
 
 		// Set up the description of the static index buffer.
 		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_indexCount;
+		indexBufferDesc.ByteWidth = sizeof(unsigned long) * mIndexCount;
 		indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		indexBufferDesc.CPUAccessFlags = 0;
 		indexBufferDesc.MiscFlags = 0;
@@ -214,7 +356,7 @@ namespace TerrainRenderer
 		indexData.SysMemSlicePitch = 0;
 
 		// Create the index buffer.
-		result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
+		result = device->CreateBuffer(&indexBufferDesc, &indexData, &mIndexBuffer);
 		if (FAILED(result))
 		{
 			return false;
@@ -234,24 +376,24 @@ namespace TerrainRenderer
 	void Terrain::ShutdownBuffers()
 	{
 		// Release the index buffer.
-		if (m_indexBuffer)
+		if (mIndexBuffer)
 		{
-			m_indexBuffer->Release();
-			m_indexBuffer = 0;
+			mIndexBuffer->Release();
+			mIndexBuffer = 0;
 		}
 
 		// Release the vertex buffer.
-		if (m_vertexBuffer)
+		if (mVertexBuffer)
 		{
-			m_vertexBuffer->Release();
-			m_vertexBuffer = 0;
+			mVertexBuffer->Release();
+			mVertexBuffer = 0;
 		}
 
 		return;
 	}
 
 
-	void Terrain::RenderBuffers(ID3D11DeviceContext* deviceContext)
+	void Terrain::RenderBuffers(ID3D11DeviceContext* context)
 	{
 		unsigned int stride;
 		unsigned int offset;
@@ -262,13 +404,13 @@ namespace TerrainRenderer
 		offset = 0;
 
 		// Set the vertex buffer to active in the input assembler so it can be rendered.
-		deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+		context->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
 
 		// Set the index buffer to active in the input assembler so it can be rendered.
-		deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case a line list.
-		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 		return;
 	}

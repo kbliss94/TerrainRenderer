@@ -3,6 +3,7 @@
 
 #include <d3d11.h>
 #include <d3dx10math.h>
+#include <stdio.h>
 
 namespace TerrainRenderer
 {
@@ -15,26 +16,44 @@ namespace TerrainRenderer
 			D3DXVECTOR4 color;
 		};
 
+		struct HeightMapType
+		{
+			float x, y, z;
+		};
+
 	public:
+		//!Constructor
 		Terrain();
-		Terrain(const Terrain&);
+
+		//!Copy constructor
+		Terrain(const Terrain& rhs);
+
+		//!Assignment operator
+		Terrain& operator=(const Terrain& rhs);
+
+		//!Destructor
 		~Terrain();
 
-		bool Initialize(ID3D11Device*);
+		bool Initialize(ID3D11Device* device, char* heightMapFilename);
 		void Shutdown();
-		void Render(ID3D11DeviceContext*);
+		void Render(ID3D11DeviceContext* context);
 
 		int GetIndexCount();
 
 	private:
-		bool InitializeBuffers(ID3D11Device*);
+		bool LoadHeightMap(char* filename);
+		void NormalizeHeightMap();
+		void ShutdownHeightMap();
+
+		bool InitializeBuffers(ID3D11Device* device);
 		void ShutdownBuffers();
-		void RenderBuffers(ID3D11DeviceContext*);
+		void RenderBuffers(ID3D11DeviceContext* context);
 
 	private:
-		int m_terrainWidth, m_terrainHeight;
-		int m_vertexCount, m_indexCount;
-		ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
+		int mTerrainWidth, mTerrainHeight;
+		int mVertexCount, mIndexCount;
+		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
+		HeightMapType* mHeightMap;
 	};
 }
 

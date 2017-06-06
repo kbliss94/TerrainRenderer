@@ -10,11 +10,11 @@ int main(int argc, char** argv)
 	const double LowerZBound = 1.0;
 	const double UpperXBound = 6.0;
 	const double UpperZBound = 5.0;
-	const string HeightMapFilename = "heightMap.bmp";		//default values
+	//const string HeightMapFilename = "heightMap.bmp";		//default values
 	//const string HeightMapFilename = "heightMapHigherFreq.bmp";	//added .5 to default freq
 	//const string HeightMapFilename = "heightMapLowerFreq.bmp";	//subtracted .5 from default freq
 	//const string HeightMapFilename = "heightMapHigherLac.bmp";		//added .5 to default lacunarity
-	//const string HeightMapFilename = "heightMapLowerLac.bmp";		//subtracted .5 from default lacunarity
+	const string HeightMapFilename = "heightMapLowerLac.bmp";		//subtracted .5 from default lacunarity
 	//const string HeightMapFilename = "heightMapHigherOctCount.bmp";		//added 5 to default octave count
 	//const string HeightMapFilename = "heightMapLowerOctCount.bmp";		//subtracted 5 from default octave count
 	//const string HeightMapFilename = "heightMapHigherPers.bmp";		//added .5 to default persistence
@@ -23,6 +23,8 @@ int main(int argc, char** argv)
 	module::Perlin perlinModule;
 	utils::NoiseMap heightMap;
 	utils::NoiseMapBuilderPlane heightMapBuilder;
+
+	perlinModule.SetLacunarity(perlinModule.GetLacunarity() - .3);
 
 	//building the height map
 	heightMapBuilder.SetSourceModule(perlinModule);
