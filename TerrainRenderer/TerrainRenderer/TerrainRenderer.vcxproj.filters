@@ -96,6 +96,9 @@
     <ClCompile Include="FontShader.cpp">
       <Filter>Source Files\Shaders\Font</Filter>
     </ClCompile>
+    <ClCompile Include="..\HeightMapGenerator\noiseutils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System.h">
@@ -157,6 +160,9 @@
     </ClInclude>
     <ClInclude Include="FontShader.h">
       <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\HeightMapGenerator\noiseutils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

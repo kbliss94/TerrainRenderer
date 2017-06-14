@@ -93,7 +93,7 @@ namespace TerrainRenderer
 		}
 
 		// Initialize the terrain object.
-		result = m_Terrain->Initialize(m_Direct3D->GetDevice(), "../TerrainRenderer/data/heightMap.bmp");
+		result = m_Terrain->Initialize(m_Direct3D->GetDevice(), "../TerrainRenderer/data/newHeightMap.bmp");
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
