@@ -54,6 +54,11 @@ namespace TerrainRenderer
 		int mVertexCount, mIndexCount;
 		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
 		HeightMapType* mHeightMap;
+
+		const float mVertexColorR = 1.0f;
+		const float mVertexColorG = 1.0f;
+		const float mVertexColorB = 1.0f;
+		const float mVertexColorAlpha = 1.0f;
 	};
 }
 

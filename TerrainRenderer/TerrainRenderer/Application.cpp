@@ -80,7 +80,7 @@ namespace TerrainRenderer
 
 		// Set the initial position of the camera.
 		cameraX = 50.0f;
-		cameraY = 2.0f;
+		cameraY = 15.0f;
 		cameraZ = -7.0f;
 
 		m_Camera->SetPosition(cameraX, cameraY, cameraZ);
@@ -360,22 +360,40 @@ namespace TerrainRenderer
 		m_Position->SetFrameTime(frameTime);
 
 		// Handle the input.
-		keyDown = m_Input->IsLeftPressed();
-		m_Position->TurnLeft(keyDown);
-
-		keyDown = m_Input->IsRightPressed();
-		m_Position->TurnRight(keyDown);
-
-		keyDown = m_Input->IsUpPressed();
-		m_Position->MoveForward(keyDown);
-
-		keyDown = m_Input->IsDownPressed();
-		m_Position->MoveBackward(keyDown);
+		//keyDown = m_Input->IsLeftPressed();
+		//m_Position->TurnLeft(keyDown);
 
 		keyDown = m_Input->IsAPressed();
+		m_Position->TurnLeft(keyDown);
+
+		//keyDown = m_Input->IsRightPressed();
+		//m_Position->TurnRight(keyDown);
+
+		keyDown = m_Input->IsDPressed();
+		m_Position->TurnRight(keyDown);
+
+		//keyDown = m_Input->IsUpPressed();
+		//m_Position->MoveForward(keyDown);
+
+		keyDown = m_Input->IsWPressed();
+		m_Position->MoveForward(keyDown);
+
+		//keyDown = m_Input->IsDownPressed();
+		//m_Position->MoveBackward(keyDown);
+
+		keyDown = m_Input->IsSPressed();
+		m_Position->MoveBackward(keyDown);
+
+		//keyDown = m_Input->IsAPressed();
+		//m_Position->MoveUpward(keyDown);
+
+		keyDown = m_Input->IsQPressed();
 		m_Position->MoveUpward(keyDown);
 
-		keyDown = m_Input->IsZPressed();
+		//keyDown = m_Input->IsZPressed();
+		//m_Position->MoveDownward(keyDown);
+
+		keyDown = m_Input->IsEPressed();
 		m_Position->MoveDownward(keyDown);
 
 		keyDown = m_Input->IsPgUpPressed();

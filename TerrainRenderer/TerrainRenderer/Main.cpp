@@ -23,12 +23,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline,
 
 	perlinModule.SetLacunarity(perlinModule.GetLacunarity() - .3);
 
+
+
 	//building the height map
 	heightMapBuilder.SetSourceModule(perlinModule);
 	heightMapBuilder.SetDestNoiseMap(heightMap);
-	heightMapBuilder.SetDestSize(256, 256);
+	heightMapBuilder.SetDestSize(64, 64);
 	heightMapBuilder.SetBounds(LowerXBound, UpperXBound, LowerZBound, UpperZBound);
 	heightMapBuilder.Build();
+
+	int pSeed;
+	pSeed = perlinModule.GetSeed();
 
 	//setting up height map renderer
 	utils::RendererImage renderer;
