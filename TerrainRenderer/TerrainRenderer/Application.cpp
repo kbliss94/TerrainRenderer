@@ -15,6 +15,8 @@ namespace TerrainRenderer
 		m_CPU = 0;
 		m_FontShader = 0;
 		m_Text = 0;
+
+		mTerrain2 = 0;
 	}
 
 	Application::Application(const Application& other)
@@ -30,11 +32,31 @@ namespace TerrainRenderer
 
 	bool Application::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeight)
 	{
+		HeightMap heightMapGenerator;
 		bool result;
 		float cameraX, cameraY, cameraZ;
 		D3DXMATRIX baseViewMatrix;
 		char videoCard[128];
 		int videoMemory;
+
+		//Create the original 9 height maps for the starting 3x3 grid
+		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM0.bmp");
+		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM1.bmp");
+		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM2.bmp");
+		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM3.bmp");
+		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM4.bmp");
+		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM5.bmp");
+		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM6.bmp");
+		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM7.bmp");
+		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM8.bmp");
+
+		for (int i = 0; i < mNumStartUpMaps; ++i)
+		{
+			heightMapGenerator.Generate(mHeightMapFilenames[i], mHMWidth, mHMHeight);
+
+			//generate random int for the seed, set the seed
+			heightMapGenerator.SetSeed(Distribution(RandomSeedGenerator));
+		}
 
 		// Create the input object.  The input object will be used to handle reading the keyboard and mouse input from the user.
 		m_Input = new Input;
@@ -93,12 +115,27 @@ namespace TerrainRenderer
 		}
 
 		// Initialize the terrain object.
-		result = m_Terrain->Initialize(m_Direct3D->GetDevice(), "../TerrainRenderer/data/newHeightMap.bmp");
+		result = m_Terrain->Initialize(m_Direct3D->GetDevice(), mHeightMapFilenames[0]);
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
 			return false;
 		}
+
+		//testing out creating a second terrain object in a different location
+		mTerrain2 = new Terrain;
+		if (!mTerrain2)
+		{
+			return false;
+		}
+
+		result = mTerrain2->Initialize(m_Direct3D->GetDevice(), mHeightMapFilenames[1], 63);
+		if (!result)
+		{
+			MessageBox(hwnd, L"Could not initialize the second terrain object.", L"Error", MB_OK);
+			return false;
+		}
+
 
 		// Create the color shader object.
 		m_ColorShader = new ColorShader;
@@ -266,6 +303,14 @@ namespace TerrainRenderer
 			m_Terrain->Shutdown();
 			delete m_Terrain;
 			m_Terrain = 0;
+		}
+
+		//release the second terrain object
+		if (mTerrain2)
+		{
+			mTerrain2->Shutdown();
+			delete mTerrain2;
+			mTerrain2 = 0;
 		}
 
 		// Release the camera object.
@@ -455,6 +500,16 @@ namespace TerrainRenderer
 		{
 			return false;
 		}
+
+		//rendering the second terrain
+		mTerrain2->Render(m_Direct3D->GetDeviceContext());
+
+		result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), mTerrain2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+		if (!result)
+		{
+			return false;
+		}
+
 
 		// Turn off the Z buffer to begin all 2D rendering.
 		m_Direct3D->TurnZBufferOff();

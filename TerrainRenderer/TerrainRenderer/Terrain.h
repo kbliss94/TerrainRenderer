@@ -34,7 +34,7 @@ namespace TerrainRenderer
 		//!Destructor
 		~Terrain();
 
-		bool Initialize(ID3D11Device* device, char* heightMapFilename);
+		bool Initialize(ID3D11Device* device, char* heightMapFilename, int xOffset = 0, int zOffset = 0);
 		void Shutdown();
 		void Render(ID3D11DeviceContext* context);
 
@@ -59,6 +59,9 @@ namespace TerrainRenderer
 		const float mVertexColorG = 1.0f;
 		const float mVertexColorB = 1.0f;
 		const float mVertexColorAlpha = 1.0f;
+
+		int mXOffset;
+		int mZOffset;
 	};
 }
 

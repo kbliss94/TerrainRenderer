@@ -99,6 +99,12 @@
     <ClCompile Include="..\HeightMapGenerator\noiseutils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HeightMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System.h">
@@ -162,6 +168,12 @@
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="..\HeightMapGenerator\noiseutils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HeightMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

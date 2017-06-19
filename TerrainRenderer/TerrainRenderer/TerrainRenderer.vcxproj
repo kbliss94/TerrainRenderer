@@ -178,6 +178,7 @@
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="FontShader.cpp" />
     <ClCompile Include="FPS.cpp" />
+    <ClCompile Include="HeightMap.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightShader.cpp" />
@@ -186,6 +187,7 @@
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="TerrainManager.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureShader.cpp" />
@@ -202,6 +204,7 @@
     <ClInclude Include="Font.h" />
     <ClInclude Include="FontShader.h" />
     <ClInclude Include="FPS.h" />
+    <ClInclude Include="HeightMap.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightShader.h" />
@@ -209,6 +212,7 @@
     <ClInclude Include="Position.h" />
     <ClInclude Include="System.h" />
     <ClInclude Include="Terrain.h" />
+    <ClInclude Include="TerrainManager.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureShader.h" />
