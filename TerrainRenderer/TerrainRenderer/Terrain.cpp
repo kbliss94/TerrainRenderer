@@ -76,6 +76,13 @@ namespace TerrainRenderer
 		return mIndexCount;
 	}
 
+	void Terrain::UpdatePosition(int xUpdate, int zUpdate)
+	{
+		mXOffset = xUpdate;
+		mZOffset = zUpdate;
+
+		InitializeBuffers(mDevice);
+	}
 
 	bool Terrain::LoadHeightMap(char* filename)
 	{
@@ -206,6 +213,8 @@ namespace TerrainRenderer
 
 	bool Terrain::InitializeBuffers(ID3D11Device* device)
 	{
+		mDevice = device;
+
 		VertexType* vertices;
 		unsigned long* indices;
 		int index, i, j;
@@ -247,7 +256,7 @@ namespace TerrainRenderer
 				index3 = (mTerrainHeight * (j + 1)) + i;      // Upper left.
 				index4 = (mTerrainHeight * (j + 1)) + (i + 1);  // Upper right.
 
-																// Upper left.
+				// Upper left.
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
@@ -318,78 +327,6 @@ namespace TerrainRenderer
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
-
-				//// Upper left.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index3].x, mHeightMap[index3].y, mHeightMap[index3].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Upper right.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index4].x, mHeightMap[index4].y, mHeightMap[index4].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Upper right.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index4].x, mHeightMap[index4].y, mHeightMap[index4].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Bottom left.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index1].x, mHeightMap[index1].y, mHeightMap[index1].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Bottom left.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index1].x, mHeightMap[index1].y, mHeightMap[index1].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Upper left.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index3].x, mHeightMap[index3].y, mHeightMap[index3].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Bottom left.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index1].x, mHeightMap[index1].y, mHeightMap[index1].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Upper right.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index4].x, mHeightMap[index4].y, mHeightMap[index4].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Upper right.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index4].x, mHeightMap[index4].y, mHeightMap[index4].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Bottom right.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index2].x, mHeightMap[index2].y, mHeightMap[index2].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Bottom right.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index2].x, mHeightMap[index2].y, mHeightMap[index2].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Bottom left.
-				//vertices[index].position = D3DXVECTOR3(mHeightMap[index1].x, mHeightMap[index1].y, mHeightMap[index1].z);
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
 			}
 		}
 

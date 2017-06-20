@@ -10,7 +10,9 @@ const float SCREEN_NEAR = 0.1f;
 #include "Input.h"
 #include "DirectX3D.h"
 #include "Camera.h"
-#include "Terrain.h"
+// #include "Terrain.h"
+#include "TerrainManager.h"
+
 #include "ColorShader.h"
 #include "Timer.h"
 #include "Position.h"
@@ -45,7 +47,6 @@ namespace TerrainRenderer
 		Input* m_Input;
 		DirectX3D* m_Direct3D;
 		Camera* m_Camera;
-		Terrain* m_Terrain;
 		ColorShader* m_ColorShader;
 		Timer* m_Timer;
 		Position* m_Position;
@@ -53,6 +54,7 @@ namespace TerrainRenderer
 		CPU* m_CPU;
 		FontShader* m_FontShader;
 		Text* m_Text;
+		TerrainManager* mTerrainManager;
 
 		const int mNumStartUpMaps = 9;
 		const int mHMWidth = 64;
@@ -63,10 +65,6 @@ namespace TerrainRenderer
 		vector<char*> mHeightMapFilenames;
 		default_random_engine RandomSeedGenerator;
 		uniform_int_distribution<int> Distribution;
-		Terrain* mTerrain2;
-
-
-
 	};
 }
 

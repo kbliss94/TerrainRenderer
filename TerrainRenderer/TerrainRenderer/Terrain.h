@@ -39,6 +39,7 @@ namespace TerrainRenderer
 		void Render(ID3D11DeviceContext* context);
 
 		int GetIndexCount();
+		void UpdatePosition(int xUpdate, int zUpdate);
 
 	private:
 		bool LoadHeightMap(char* filename);
@@ -62,6 +63,8 @@ namespace TerrainRenderer
 
 		int mXOffset;
 		int mZOffset;
+
+		ID3D11Device* mDevice;
 	};
 }
 

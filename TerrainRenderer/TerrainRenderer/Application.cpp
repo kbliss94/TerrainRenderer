@@ -7,7 +7,6 @@ namespace TerrainRenderer
 		m_Input = 0;
 		m_Direct3D = 0;
 		m_Camera = 0;
-		m_Terrain = 0;
 		m_ColorShader = 0;
 		m_Timer = 0;
 		m_Position = 0;
@@ -15,8 +14,7 @@ namespace TerrainRenderer
 		m_CPU = 0;
 		m_FontShader = 0;
 		m_Text = 0;
-
-		mTerrain2 = 0;
+		mTerrainManager = 0;
 	}
 
 	Application::Application(const Application& other)
@@ -101,41 +99,29 @@ namespace TerrainRenderer
 		m_Camera->GetViewMatrix(baseViewMatrix);
 
 		// Set the initial position of the camera.
-		cameraX = 50.0f;
-		cameraY = 15.0f;
-		cameraZ = -7.0f;
+		//cameraX = 50.0f;
+		//cameraY = 15.0f;
+		//cameraZ = -7.0f;
+
+		cameraX = 94.0f;
+		cameraY = 90.0f;
+		cameraZ = 94.0f;
 
 		m_Camera->SetPosition(cameraX, cameraY, cameraZ);
 
-		// Create the terrain object.
-		m_Terrain = new Terrain;
-		if (!m_Terrain)
+		//setting up the terrain manager
+		mTerrainManager = new TerrainManager;
+		if (!mTerrainManager)
 		{
 			return false;
 		}
 
-		// Initialize the terrain object.
-		result = m_Terrain->Initialize(m_Direct3D->GetDevice(), mHeightMapFilenames[0]);
+		result = mTerrainManager->Initialize(m_Direct3D->GetDevice(), &mHeightMapFilenames);
 		if (!result)
 		{
-			MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
+			MessageBox(hwnd, L"Could not initialize the terrain manager object.", L"Error", MB_OK);
 			return false;
 		}
-
-		//testing out creating a second terrain object in a different location
-		mTerrain2 = new Terrain;
-		if (!mTerrain2)
-		{
-			return false;
-		}
-
-		result = mTerrain2->Initialize(m_Direct3D->GetDevice(), mHeightMapFilenames[1], 63);
-		if (!result)
-		{
-			MessageBox(hwnd, L"Could not initialize the second terrain object.", L"Error", MB_OK);
-			return false;
-		}
-
 
 		// Create the color shader object.
 		m_ColorShader = new ColorShader;
@@ -297,20 +283,12 @@ namespace TerrainRenderer
 			m_ColorShader = 0;
 		}
 
-		// Release the terrain object.
-		if (m_Terrain)
+		//release the terrain manager object
+		if (mTerrainManager)
 		{
-			m_Terrain->Shutdown();
-			delete m_Terrain;
-			m_Terrain = 0;
-		}
-
-		//release the second terrain object
-		if (mTerrain2)
-		{
-			mTerrain2->Shutdown();
-			delete mTerrain2;
-			mTerrain2 = 0;
+			mTerrainManager->Shutdown();
+			delete mTerrainManager;
+			mTerrainManager = 0;
 		}
 
 		// Release the camera object.
@@ -405,6 +383,9 @@ namespace TerrainRenderer
 		m_Position->SetFrameTime(frameTime);
 
 		// Handle the input.
+
+
+
 		//keyDown = m_Input->IsLeftPressed();
 		//m_Position->TurnLeft(keyDown);
 
@@ -423,11 +404,21 @@ namespace TerrainRenderer
 		keyDown = m_Input->IsWPressed();
 		m_Position->MoveForward(keyDown);
 
+		if (keyDown)
+		{
+			mTerrainManager->GenerateChunks(m_Position);
+		}
+
 		//keyDown = m_Input->IsDownPressed();
 		//m_Position->MoveBackward(keyDown);
 
 		keyDown = m_Input->IsSPressed();
 		m_Position->MoveBackward(keyDown);
+
+		if (keyDown)
+		{
+			mTerrainManager->GenerateChunks(m_Position);
+		}
 
 		//keyDown = m_Input->IsAPressed();
 		//m_Position->MoveUpward(keyDown);
@@ -485,31 +476,14 @@ namespace TerrainRenderer
 		// Generate the view matrix based on the camera's position.
 		m_Camera->Render();
 
-		// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
+		// Get the world, view, projection, and orthographic matrices from the camera and Direct3D objects.
 		m_Direct3D->GetWorldMatrix(worldMatrix);
 		m_Camera->GetViewMatrix(viewMatrix);
 		m_Direct3D->GetProjectionMatrix(projectionMatrix);
 		m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
-		// Render the terrain buffers.
-		m_Terrain->Render(m_Direct3D->GetDeviceContext());
-
-		// Render the model using the color shader.
-		result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
-		if (!result)
-		{
-			return false;
-		}
-
-		//rendering the second terrain
-		mTerrain2->Render(m_Direct3D->GetDeviceContext());
-
-		result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), mTerrain2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
-		if (!result)
-		{
-			return false;
-		}
-
+		//rendering the terrain buffers
+		mTerrainManager->Render(m_Direct3D->GetDeviceContext(), m_ColorShader, worldMatrix, viewMatrix, projectionMatrix);
 
 		// Turn off the Z buffer to begin all 2D rendering.
 		m_Direct3D->TurnZBufferOff();
