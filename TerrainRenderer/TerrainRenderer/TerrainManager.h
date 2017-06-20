@@ -37,6 +37,9 @@ namespace TerrainRenderer
 		void UpdateZPositionUp();
 		void UpdateZPositionDown();
 
+		void UpdateChunkPositions();
+		void UpdateCurrentChunk(float x, float z);
+
 		vector<char*> mHeightMapFilenames;
 		vector<Terrain*> mGridBottomRow;
 		vector<Terrain*> mGridMiddleRow;
@@ -56,7 +59,14 @@ namespace TerrainRenderer
 
 		bool mUpdated;
 
-		int mCurrentX;
-		int mCurrentZ;
+		//int mCurrentX;
+		//int mCurrentZ;
+
+		struct ChunkBorders
+		{
+			float minZ, maxZ, minX, maxX;
+		};
+
+		ChunkBorders mCurrentChunkBorders;
 	};
 }

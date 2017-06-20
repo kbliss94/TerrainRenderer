@@ -3,7 +3,7 @@
 namespace TerrainRenderer
 {
 	TerrainManager::TerrainManager(): 
-		mHeightMapFilenames(), mGridBottomRow(), mGridMiddleRow(), mGridTopRow(), mUpdated(false), mCurrentX(0), mCurrentZ(0)
+		mHeightMapFilenames(), mGridBottomRow(), mGridMiddleRow(), mGridTopRow(), mUpdated(false)//, mCurrentX(0), mCurrentZ(0)
 	{
 		mBottomRowOffsets = new vector<ChunkOffset>
 		{
@@ -36,6 +36,9 @@ namespace TerrainRenderer
 			mGridMiddleRow[i] = new Terrain;
 			mGridTopRow[i] = new Terrain;
 		}
+
+		//sets the middle chunk as the current chunk on startup
+		mCurrentChunkBorders = { (float)(*mMiddleRowOffsets)[1].z, (float)((*mMiddleRowOffsets)[1].z + mChunkOffset), (float)(*mMiddleRowOffsets)[1].x, (float)((*mMiddleRowOffsets)[1].x + mChunkOffset) };
 	}
 
 	TerrainManager::TerrainManager(const TerrainManager& rhs)
@@ -119,54 +122,64 @@ namespace TerrainRenderer
 
 	void TerrainManager::GenerateChunks(Position* position)
 	{
-		//need to check to see if chunks need to be generated or not...divide them by something to get them to a base value that'll
-		//be on the same scale for every chunk in order to check? idk
-		///////for checking:
-		//so if either x or z modded by 63 == 0, generate a chunk by offsetting x or z
-		float flX, flY, flZ;
-		position->GetPosition(flX, flY, flZ);
+		float xPos, yPos, zPos;
+		
+		position->GetPosition(xPos, yPos, zPos);
 
-		int x = (int)flX;
-		int z = (int)flZ;
-
-		if (x % mChunkOffset == 0)
+		if (xPos < mCurrentChunkBorders.minX)
 		{
-			if (x < mCurrentX)
-			{
-				UpdateXPositionLeft();
-				mCurrentX = x;
-			}
-			else if (x > mCurrentX)
-			{
-				UpdateXPositionRight();
-				mCurrentX = x;
-			}
-			//so nothing should happen if x == mCurrentX
+			//move left
+			UpdateXPositionLeft();
+			UpdateChunkPositions();
+			//update current chunk
+			UpdateCurrentChunk(xPos, zPos);
 		}
-		else if (z % mChunkOffset == 0)
+		else if (xPos > mCurrentChunkBorders.maxX)
 		{
-			if (z > mCurrentZ)
-			{
-				UpdateZPositionUp();
-				mCurrentZ = z;
-			}
-			else if (z < mCurrentZ)
-			{
-				UpdateZPositionDown();
-				mCurrentZ = z;
-			}
-			//so nothing should happen if z == mCurrentZ
+			//move right
+			UpdateXPositionRight();
+			UpdateChunkPositions();
+			//update current chunk
+			UpdateCurrentChunk(xPos, zPos);
+		}
+		else if (zPos > mCurrentChunkBorders.maxZ)
+		{
+			//move up
+			UpdateZPositionUp();
+			UpdateChunkPositions();
+			//update current chunk
+			UpdateCurrentChunk(xPos, zPos);
+		}
+		else if (zPos < mCurrentChunkBorders.minZ)
+		{
+			//move down
+			UpdateZPositionDown();
+			UpdateChunkPositions();
+			//update current chunk
+			UpdateCurrentChunk(xPos, zPos);
 		}
 	}
 
 	void TerrainManager::UpdateXPositionLeft()
 	{
-
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			//update the row offset vectors
+			(*mTopRowOffsets)[i].x = (*mTopRowOffsets)[i].x - mChunkOffset;
+			(*mMiddleRowOffsets)[i].x = (*mMiddleRowOffsets)[i].x - mChunkOffset;
+			(*mBottomRowOffsets)[i].x = (*mBottomRowOffsets)[i].x - mChunkOffset;
+		}
 	}
 
 	void TerrainManager::UpdateXPositionRight()
 	{
-
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			//update the row offset vectors
+			(*mTopRowOffsets)[i].x = (*mTopRowOffsets)[i].x + mChunkOffset;
+			(*mMiddleRowOffsets)[i].x = (*mMiddleRowOffsets)[i].x + mChunkOffset;
+			(*mBottomRowOffsets)[i].x = (*mBottomRowOffsets)[i].x + mChunkOffset;
+		}
 	}
 
 	void TerrainManager::UpdateZPositionUp()
@@ -177,11 +190,6 @@ namespace TerrainRenderer
 			(*mTopRowOffsets)[i].z = (*mTopRowOffsets)[i].z + mChunkOffset;
 			(*mMiddleRowOffsets)[i].z = (*mMiddleRowOffsets)[i].z + mChunkOffset;
 			(*mBottomRowOffsets)[i].z = (*mBottomRowOffsets)[i].z + mChunkOffset;
-
-			//update chunk positions
-			(mGridTopRow[i])->UpdatePosition((*mTopRowOffsets)[i].x, (*mTopRowOffsets)[i].z);
-			(mGridMiddleRow[i])->UpdatePosition((*mMiddleRowOffsets)[i].x, (*mMiddleRowOffsets)[i].z);
-			(mGridBottomRow[i])->UpdatePosition((*mBottomRowOffsets)[i].x, (*mBottomRowOffsets)[i].z);
 		}
 	}
 
@@ -193,11 +201,47 @@ namespace TerrainRenderer
 			(*mTopRowOffsets)[i].z = (*mTopRowOffsets)[i].z - mChunkOffset;
 			(*mMiddleRowOffsets)[i].z = (*mMiddleRowOffsets)[i].z - mChunkOffset;
 			(*mBottomRowOffsets)[i].z = (*mBottomRowOffsets)[i].z - mChunkOffset;
+		}
+	}
 
+	void TerrainManager::UpdateChunkPositions()
+	{
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
 			//update chunk positions
 			(mGridTopRow[i])->UpdatePosition((*mTopRowOffsets)[i].x, (*mTopRowOffsets)[i].z);
 			(mGridMiddleRow[i])->UpdatePosition((*mMiddleRowOffsets)[i].x, (*mMiddleRowOffsets)[i].z);
 			(mGridBottomRow[i])->UpdatePosition((*mBottomRowOffsets)[i].x, (*mBottomRowOffsets)[i].z);
+		}
+	}
+
+	void TerrainManager::UpdateCurrentChunk(float x, float z)
+	{
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			if ((*mTopRowOffsets)[i].x < x && x < ((*mTopRowOffsets)[i].x + mChunkOffset)
+				&& (*mTopRowOffsets)[i].z < z && z < ((*mTopRowOffsets)[i].z + mChunkOffset))
+			{
+				//if the camera position is within this chunk, then it is the current chunk
+
+				mCurrentChunkBorders = { (float)(*mTopRowOffsets)[i].z, (float)((*mTopRowOffsets)[i].z + mChunkOffset), (float)(*mTopRowOffsets)[i].x, (float)((*mTopRowOffsets)[i].x + mChunkOffset) };
+			}
+
+			if ((*mMiddleRowOffsets)[i].x < x && x < ((*mMiddleRowOffsets)[i].x + mChunkOffset)
+				&& (*mMiddleRowOffsets)[i].z < z && z < ((*mMiddleRowOffsets)[i].z + mChunkOffset))
+			{
+				//if the camera position is within this chunk, then it is the current chunk
+
+				mCurrentChunkBorders = { (float)(*mMiddleRowOffsets)[i].z, (float)((*mMiddleRowOffsets)[i].z + mChunkOffset), (float)(*mMiddleRowOffsets)[i].x, (float)((*mMiddleRowOffsets)[i].x + mChunkOffset) };
+			}
+
+			if ((*mBottomRowOffsets)[i].x < x && x < ((*mBottomRowOffsets)[i].x + mChunkOffset)
+				&& (*mBottomRowOffsets)[i].z < z && z < ((*mBottomRowOffsets)[i].z + mChunkOffset))
+			{
+				//if the camera position is within this chunk, then it is the current chunk
+
+				mCurrentChunkBorders = { (float)(*mBottomRowOffsets)[i].z, (float)((*mBottomRowOffsets)[i].z + mChunkOffset), (float)(*mBottomRowOffsets)[i].x, (float)((*mBottomRowOffsets)[i].x + mChunkOffset) };
+			}
 		}
 	}
 }
