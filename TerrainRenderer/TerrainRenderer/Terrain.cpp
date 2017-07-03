@@ -3,7 +3,7 @@
 namespace TerrainRenderer 
 {
 	Terrain::Terrain(): 
-		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mHeightMap(nullptr), mXOffset(0), mZOffset(0)
+		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mHeightMap(nullptr), mScalingMap(nullptr), mXOffset(0), mZOffset(0)
 	{
 
 	}
@@ -23,11 +23,12 @@ namespace TerrainRenderer
 
 	}
 
-	bool Terrain::Initialize(ID3D11Device* device, char* heightMapFilename, int xOffset, int zOffset)
+	bool Terrain::Initialize(ID3D11Device* device, char* heightMapFilename, char* scalingFilename, int xOffset, int zOffset)
 	{
 		bool result;
 		mXOffset = xOffset;
 		mZOffset = zOffset;
+		mHeightScalingMap = scalingFilename;
 
 		// Load in the height map for the terrain.
 		result = LoadHeightMap(heightMapFilename);
@@ -39,12 +40,31 @@ namespace TerrainRenderer
 		// Normalize the height of the height map.
 		NormalizeHeightMap();
 
+		//// Initialize the vertex and index buffer that hold the geometry for the terrain.
+		//result = InitializeBuffers(device);
+		//if (!result)
+		//{
+		//	return false;
+		//}
+
+		//testing scaling
+		//loading in the height map for scaling the terrain
+		result = LoadScalingMap(scalingFilename);
+		if (!result)
+		{
+			return false;
+		}
+
+		//normalizing the height of the scaling map
+		NormalizeScalingMap();
+
 		// Initialize the vertex and index buffer that hold the geometry for the terrain.
 		result = InitializeBuffers(device);
 		if (!result)
 		{
 			return false;
 		}
+
 
 		return true;
 	}
@@ -182,23 +202,125 @@ namespace TerrainRenderer
 		return true;
 	}
 
-
-	void Terrain::NormalizeHeightMap()
+	bool Terrain::LoadScalingMap(char* filename)
 	{
-		int i, j;
+		FILE* filePtr;
+		int error;
+		unsigned int count;
+		BITMAPFILEHEADER bitmapFileHeader;
+		BITMAPINFOHEADER bitmapInfoHeader;
+		int imageSize, i, j, k, index;
+		unsigned char* bitmapImage;
+		unsigned char height;
 
+		// Open the height map file in binary.
+		error = fopen_s(&filePtr, filename, "rb");
+		if (error != 0)
+		{
+			return false;
+		}
 
+		// Read in the file header.
+		count = fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr);
+		if (count != 1)
+		{
+			return false;
+		}
+
+		// Read in the bitmap info header.
+		count = fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr);
+		if (count != 1)
+		{
+			return false;
+		}
+
+		// Save the dimensions of the terrain.
+		mTerrainWidth = bitmapInfoHeader.biWidth;
+		mTerrainHeight = bitmapInfoHeader.biHeight;
+
+		// Calculate the size of the bitmap image data.
+		imageSize = mTerrainWidth * mTerrainHeight * 3;
+
+		// Allocate memory for the bitmap image data.
+		bitmapImage = new unsigned char[imageSize];
+		if (!bitmapImage)
+		{
+			return false;
+		}
+
+		// Move to the beginning of the bitmap data.
+		fseek(filePtr, bitmapFileHeader.bfOffBits, SEEK_SET);
+
+		// Read in the bitmap image data.
+		count = fread(bitmapImage, 1, imageSize, filePtr);
+		if (count != imageSize)
+		{
+			return false;
+		}
+
+		// Close the file.
+		error = fclose(filePtr);
+		if (error != 0)
+		{
+			return false;
+		}
+
+		// Create the structure to hold the height map data.
+		mScalingMap = new HeightMapType[mTerrainWidth * mTerrainHeight];
+		if (!mScalingMap)
+		{
+			return false;
+		}
+
+		// Initialize the position in the image data buffer.
+		k = 0;
+
+		// Read the image data into the height map.
 		for (j = 0; j < mTerrainHeight; j++)
 		{
 			for (i = 0; i < mTerrainWidth; i++)
 			{
-				mHeightMap[(mTerrainHeight * j) + i].y /= 15.0f;
+				height = bitmapImage[k];
+
+				index = (mTerrainHeight * j) + i;
+
+				mScalingMap[index].x = (float)i;
+				mScalingMap[index].y = (float)height;
+				mScalingMap[index].z = (float)j;
+
+				k += 3;
 			}
 		}
 
-		return;
+		// Release the bitmap image data.
+		delete[] bitmapImage;
+		bitmapImage = 0;
+
+		return true;
 	}
 
+	void Terrain::NormalizeHeightMap()
+	{
+		for (int j = 0; j < mTerrainHeight; j++)
+		{
+			for (int i = 0; i < mTerrainWidth; i++)
+			{
+				mHeightMap[(mTerrainHeight * j) + i].y /= 15.0f;
+			}
+		}
+	}
+
+	void Terrain::NormalizeScalingMap()
+	{
+		for (int j = 0; j < mTerrainHeight; j++)
+		{
+			for (int i = 0; i < mTerrainWidth; i++)
+			{
+				mScalingMap[(mTerrainHeight * j) + i].y /= 15.0f;
+				mScalingMap[(mTerrainHeight * j) + i].y /= 15.0f;
+			}
+		}
+	}
 
 	void Terrain::ShutdownHeightMap()
 	{
@@ -208,11 +330,19 @@ namespace TerrainRenderer
 			mHeightMap = 0;
 		}
 
+		if (mScalingMap)
+		{
+			delete[] mScalingMap;
+			mScalingMap = 0;
+		}
+
 		return;
 	}
 
 	bool Terrain::InitializeBuffers(ID3D11Device* device)
 	{
+		float scale;
+
 		mDevice = device;
 
 		VertexType* vertices;
@@ -257,73 +387,85 @@ namespace TerrainRenderer
 				index4 = (mTerrainHeight * (j + 1)) + (i + 1);  // Upper right.
 
 				// Upper left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
+				//vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y * mScalingMap[index3].y, (mHeightMap[index3].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y * mScalingMap[index4].y, (mHeightMap[index4].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y * mScalingMap[index4].y, (mHeightMap[index4].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y * mScalingMap[index1].y, (mHeightMap[index1].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y * mScalingMap[index1].y, (mHeightMap[index1].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y * mScalingMap[index3].y, (mHeightMap[index3].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y * mScalingMap[index1].y, (mHeightMap[index1].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y * mScalingMap[index4].y, (mHeightMap[index4].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y * mScalingMap[index4].y, (mHeightMap[index4].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom right.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y * mScalingMap[index2].y, (mHeightMap[index2].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom right.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y * mScalingMap[index2].y, (mHeightMap[index2].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
+				/*vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));*/
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y * mScalingMap[index1].y, (mHeightMap[index1].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;

@@ -34,7 +34,7 @@ namespace TerrainRenderer
 		//!Destructor
 		~Terrain();
 
-		bool Initialize(ID3D11Device* device, char* heightMapFilename, int xOffset = 0, int zOffset = 0);
+		bool Initialize(ID3D11Device* device, char* heightMapFilename, char* scalingFilename, int xOffset = 0, int zOffset = 0);
 		void Shutdown();
 		void Render(ID3D11DeviceContext* context);
 
@@ -43,7 +43,9 @@ namespace TerrainRenderer
 
 	private:
 		bool LoadHeightMap(char* filename);
+		bool LoadScalingMap(char* filename);
 		void NormalizeHeightMap();
+		void NormalizeScalingMap();
 		void ShutdownHeightMap();
 
 		bool InitializeBuffers(ID3D11Device* device);
@@ -65,6 +67,10 @@ namespace TerrainRenderer
 		int mZOffset;
 
 		ID3D11Device* mDevice;
+
+		const float mHeightScaling = 0.5f;
+		char* mHeightScalingMap;
+		HeightMapType* mScalingMap;
 	};
 }
 

@@ -68,17 +68,38 @@ namespace TerrainRenderer
 		mSeed = seed;
 	}
 
+	bool HeightMap::IsScaleMap()
+	{
+		return mIsScaleMap;
+	}
+
+	void HeightMap::SetIsScaleMap(bool isScale)
+	{
+		mIsScaleMap = isScale;
+	}
+
 	void HeightMap::Generate(const string& filename, int height, int width)
 	{
 		module::Perlin perlinModule;
 		utils::NoiseMap heightMap;
 		utils::NoiseMapBuilderPlane heightMapBuilder;
-
+		
 		mFilename = filename;
 		mHeight = height;
 		mWidth = width;
 		perlinModule.SetSeed(mSeed);
-		perlinModule.SetLacunarity(perlinModule.GetLacunarity() - .3);
+
+		perlinModule.SetFrequency(perlinModule.GetFrequency() - .4);
+
+		//testing scaling
+		//module::Add scaling;
+		
+		if (mIsScaleMap)
+		{
+			perlinModule.SetFrequency(perlinModule.GetFrequency() - .3);
+		}
+
+
 
 		//building the height map
 		heightMapBuilder.SetSourceModule(perlinModule);

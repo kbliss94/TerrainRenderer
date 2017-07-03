@@ -48,6 +48,8 @@ namespace TerrainRenderer
 		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM7.bmp");
 		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM8.bmp");
 
+		heightMapGenerator.SetIsScaleMap(false);
+
 		for (int i = 0; i < mNumStartUpMaps; ++i)
 		{
 			heightMapGenerator.Generate(mHeightMapFilenames[i], mHMWidth, mHMHeight);
@@ -55,6 +57,23 @@ namespace TerrainRenderer
 			//generate random int for the seed, set the seed
 			heightMapGenerator.SetSeed(Distribution(RandomSeedGenerator));
 		}
+
+		//testing multiple scaling height maps (maybe could use these original 9 over & over, just rearranged
+		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling0.bmp");
+		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling1.bmp");
+		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling2.bmp");
+		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling3.bmp");
+		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling4.bmp");
+		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling5.bmp");
+		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling6.bmp");
+		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling7.bmp");
+		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling8.bmp");
+
+		//testing big scale map
+		heightMapGenerator.SetIsScaleMap(true);
+		char* mLargeScalingFilename = "..//TerrainRenderer//data//testScale.bmp";
+		heightMapGenerator.SetSeed(89 /*Distribution(RandomSeedGenerator)*/);
+		heightMapGenerator.Generate(mLargeScalingFilename, (mHMWidth * 3), (mHMHeight * 3));
 
 		// Create the input object.  The input object will be used to handle reading the keyboard and mouse input from the user.
 		m_Input = new Input;
@@ -116,7 +135,7 @@ namespace TerrainRenderer
 			return false;
 		}
 
-		result = mTerrainManager->Initialize(m_Direct3D->GetDevice(), &mHeightMapFilenames);
+		result = mTerrainManager->Initialize(m_Direct3D->GetDevice(), &mHeightMapFilenames, &mScalingFilenames, mLargeScalingFilename);
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize the terrain manager object.", L"Error", MB_OK);
@@ -384,57 +403,45 @@ namespace TerrainRenderer
 
 		// Handle the input.
 
-
-
-		//keyDown = m_Input->IsLeftPressed();
-		//m_Position->TurnLeft(keyDown);
-
+		//turning left
 		keyDown = m_Input->IsAPressed();
 		m_Position->TurnLeft(keyDown);
 
-		//keyDown = m_Input->IsRightPressed();
-		//m_Position->TurnRight(keyDown);
-
+		//turning right
 		keyDown = m_Input->IsDPressed();
 		m_Position->TurnRight(keyDown);
 
-		//keyDown = m_Input->IsUpPressed();
-		//m_Position->MoveForward(keyDown);
-
+		//moving forward
 		keyDown = m_Input->IsWPressed();
 		m_Position->MoveForward(keyDown);
 
-		if (keyDown)
+		if (keyDown && GENERATION_ENABLED)
 		{
 			mTerrainManager->GenerateChunks(m_Position);
 		}
 
-		//keyDown = m_Input->IsDownPressed();
-		//m_Position->MoveBackward(keyDown);
-
+		//moving backward
 		keyDown = m_Input->IsSPressed();
 		m_Position->MoveBackward(keyDown);
 
-		if (keyDown)
+		if (keyDown && GENERATION_ENABLED)
 		{
 			mTerrainManager->GenerateChunks(m_Position);
 		}
 
-		//keyDown = m_Input->IsAPressed();
-		//m_Position->MoveUpward(keyDown);
-
+		//moving up
 		keyDown = m_Input->IsQPressed();
 		m_Position->MoveUpward(keyDown);
 
-		//keyDown = m_Input->IsZPressed();
-		//m_Position->MoveDownward(keyDown);
-
+		//moving down
 		keyDown = m_Input->IsEPressed();
 		m_Position->MoveDownward(keyDown);
 
+		//looking up
 		keyDown = m_Input->IsPgUpPressed();
 		m_Position->LookUpward(keyDown);
 
+		//looking down
 		keyDown = m_Input->IsPgDownPressed();
 		m_Position->LookDownward(keyDown);
 

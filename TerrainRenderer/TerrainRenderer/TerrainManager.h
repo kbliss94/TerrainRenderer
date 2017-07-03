@@ -3,6 +3,7 @@
 #include "Terrain.h"
 #include "ColorShader.h"
 #include "Position.h"
+#include "EasyBMP.h"
 
 #include <vector>
 
@@ -25,7 +26,7 @@ namespace TerrainRenderer
 		//!Destructor
 		~TerrainManager();
 
-		bool Initialize(ID3D11Device* device, vector<char*>* heightMapFilenames);
+		bool Initialize(ID3D11Device* device, vector<char*>* heightMapFilenames, vector<char*>* scalingFilenames, char* largeScalingFilename);
 		void Shutdown();
 		void Render(ID3D11DeviceContext* context, ColorShader* colorShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection);
 
@@ -40,7 +41,13 @@ namespace TerrainRenderer
 		void UpdateChunkPositions();
 		void UpdateCurrentChunk(float x, float z);
 
+		void ResolveVerticalSeam(const char* leftChunkFilename, const char* rightChunkFilename);
+		void ResolveHorizontalSeam(const char* topChunkFilename, const char* bottomChunkFilename);
+		void PartitionScalingMap();
+
 		vector<char*> mHeightMapFilenames;
+		vector<char*> mScalingFilenames;
+		char* mLargeScalingMap;
 		vector<Terrain*> mGridBottomRow;
 		vector<Terrain*> mGridMiddleRow;
 		vector<Terrain*> mGridTopRow;
@@ -58,9 +65,6 @@ namespace TerrainRenderer
 		const int mChunkOffset = 63;
 
 		bool mUpdated;
-
-		//int mCurrentX;
-		//int mCurrentZ;
 
 		struct ChunkBorders
 		{

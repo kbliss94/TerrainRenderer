@@ -175,6 +175,7 @@
     <ClCompile Include="ColorShader.cpp" />
     <ClCompile Include="CPU.cpp" />
     <ClCompile Include="DirectX3D.cpp" />
+    <ClCompile Include="EasyBMP.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="FontShader.cpp" />
     <ClCompile Include="FPS.cpp" />
@@ -201,6 +202,10 @@
     <ClInclude Include="ColorShader.h" />
     <ClInclude Include="CPU.h" />
     <ClInclude Include="DirectX3D.h" />
+    <ClInclude Include="EasyBMP.h" />
+    <ClInclude Include="EasyBMP_BMP.h" />
+    <ClInclude Include="EasyBMP_DataStructures.h" />
+    <ClInclude Include="EasyBMP_VariousBMPutilities.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="FontShader.h" />
     <ClInclude Include="FPS.h" />

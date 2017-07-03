@@ -31,6 +31,9 @@ namespace TerrainRenderer
 		int Seed();
 		void SetSeed(int seed);
 
+		bool IsScaleMap();
+		void SetIsScaleMap(bool isScale);
+
 	private:
 		string mFilename;
 		double mLowerXBound;
@@ -40,5 +43,6 @@ namespace TerrainRenderer
 		int mHeight;
 		int mWidth;
 		int mSeed;
+		bool mIsScaleMap;
 	};
 }

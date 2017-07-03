@@ -4,6 +4,8 @@
 #include "noiseutils.h"
 #include "HeightMap.h"
 
+#include "EasyBMP.h"
+
 using namespace std;
 using namespace TerrainRenderer;
 
@@ -12,6 +14,36 @@ using namespace TerrainRenderer;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow)
 {
+	//testing out modifying the bmp stuff using EasyBMP
+	BMP testChunk;
+	const char* testChunkFilename = "..//TerrainRenderer//data//HM0.bmp";
+	const char* testOutputFilename = "..//TerrainRenderer//data//EasyBMPOutput.bmp";
+
+	testChunk.ReadFromFile(testChunkFilename);
+
+	//for (int j = 0; j < 2; ++j)
+	//{
+	//	for (int i = 0; i < testChunk.TellWidth(); ++i)
+	//	{
+	//		testChunk(j, i)->Red = 50;
+	//		testChunk(j, i)->Green = 0;
+	//		testChunk(j, i)->Blue = 50;
+	//	}
+	//}
+
+	for (int i = 0; i < testChunk.TellWidth(); ++i)
+	{
+		for (int j = 0; j < 2; ++j)
+		{
+			testChunk(i, j)->Red = 50;
+			testChunk(i, j)->Green = 0;
+			testChunk(i, j)->Blue = 50;
+		}
+	}
+
+	testChunk.WriteToFile(testOutputFilename);
+
+
 	//Rendering the terrain mesh using the height map
 	System* system;
 	bool result;
