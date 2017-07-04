@@ -277,97 +277,63 @@ namespace TerrainRenderer
 		leftChunk.ReadFromFile(leftChunkFilename);
 		rightChunk.ReadFromFile(rightChunkFilename);
 
-
-		//testing out weighted average borders
-		int test = 63;
-
+		//adding a weighted average border on the left side of the right chunk
+		int leftChunkBorder = 63;
+		float weightChange = (float)(1.0f / mBorderWidth);
 		float leftWeight = 1.0f;
 		float rightWeight = 0.0f;
 
-		//used to be j < 11
-		//then was j < 21
-		for (int j = 0; j < 30; ++j)
+		for (int i = 0; i < mBorderWidth; ++i)
 		{
-			for (int i = 0; i < leftChunk.TellWidth(); ++i)
+			for (int j = 0; j < leftChunk.TellWidth(); ++j)
 			{
-				//weighting average
-				if (j == 0)
+				if (i == 0)
 				{
-					//rightChunk(j, i)->Red = (leftChunk(test, i)->Red * leftWeight) + (rightChunk(j, i)->Red * rightWeight);
-					//rightChunk(j, i)->Green = (leftChunk(test, i)->Green * leftWeight) + (rightChunk(j, i)->Green * rightWeight);
-					//rightChunk(j, i)->Blue = (leftChunk(test, i)->Blue * leftWeight) + (rightChunk(j, i)->Blue * rightWeight);
-
-					//trying to not use weighted average
-					//rightChunk(j, i)->Red = ((leftChunk(test, i)->Red) + (rightChunk(j, i)->Red)) / 2;
-					//rightChunk(j, i)->Green = ((leftChunk(test, i)->Green) + (rightChunk(j, i)->Green)) / 2;
-					//rightChunk(j, i)->Blue = ((leftChunk(test, i)->Blue) + (rightChunk(j, i)->Blue)) / 2;
-
-					rightChunk(j, i)->Red = (leftChunk(test, i)->Red);
-					rightChunk(j, i)->Green = (leftChunk(test, i)->Green);
-					rightChunk(j, i)->Blue = (leftChunk(test, i)->Blue);
-
+					rightChunk(i, j)->Red = (leftChunk(leftChunkBorder, j)->Red * leftWeight) + (rightChunk(i, j)->Red * rightWeight);
+					rightChunk(i, j)->Green = (leftChunk(leftChunkBorder, j)->Green * leftWeight) + (rightChunk(i, j)->Green * rightWeight);
+					rightChunk(i, j)->Blue = (leftChunk(leftChunkBorder, j)->Blue * leftWeight) + (rightChunk(i, j)->Blue * rightWeight);
 				}
 				else
 				{
-					//rightChunk(j, i)->Red = (rightChunk(j - 1, i)->Red * leftWeight) + (rightChunk(j, i)->Red * rightWeight);
-					//rightChunk(j, i)->Green = (rightChunk(j - 1, i)->Green * leftWeight) + (rightChunk(j, i)->Green * rightWeight);
-					//rightChunk(j, i)->Blue = (rightChunk(j - 1, i)->Blue * leftWeight) + (rightChunk(j, i)->Blue * rightWeight);
-
-					//trying to not use weighted average
-					rightChunk(j, i)->Red = ((rightChunk(j - 1, i)->Red) + (rightChunk(j, i)->Red)) / 2;
-					rightChunk(j, i)->Green = ((rightChunk(j - 1, i)->Green) + (rightChunk(j, i)->Green)) / 2;
-					rightChunk(j, i)->Blue = ((rightChunk(j - 1, i)->Blue) + (rightChunk(j, i)->Blue)) / 2;
+					rightChunk(i, j)->Red = (rightChunk(i - 1, j)->Red * leftWeight) + (rightChunk(i, j)->Red * rightWeight);
+					rightChunk(i, j)->Green = (rightChunk(i - 1, j)->Green * leftWeight) + (rightChunk(i, j)->Green * rightWeight);
+					rightChunk(i, j)->Blue = (rightChunk(i - 1, j)->Blue * leftWeight) + (rightChunk(i, j)->Blue * rightWeight);
 				}
-
-				//incrementing weight values & x values of left-hand border
-				leftWeight -= -.1f;		//0.025f;	//0.05f;	//0.1f;
-				rightWeight += 0.1f;		//0.025f;			//0.05f;			//0.1f;
 			}
+
+			leftWeight -= weightChange;
+			rightWeight += weightChange;
 		}
 
+		//adding a weighted average border on the right side of the left chunk
+		int rightChunkBorder = 0;
+		leftWeight = 0.0f;
+		rightWeight = 1.0f;
 
-		//below is what i'm currently using
-		//int test = 61;
+		for (int i = 63; i > (63 - mBorderWidth); --i)
+		{
+			for (int j = 0; j < leftChunk.TellWidth(); ++j)
+			{
+				if (i == 63)
+				{
+					leftChunk(i, j)->Red = (rightChunk(rightChunkBorder, j)->Red * rightWeight) + (leftChunk(i, j)->Red * leftWeight);
+					leftChunk(i, j)->Green = (rightChunk(rightChunkBorder, j)->Green * rightWeight) + (leftChunk(i, j)->Green * leftWeight);
+					leftChunk(i, j)->Blue = (rightChunk(rightChunkBorder, j)->Blue * rightWeight) + (leftChunk(i, j)->Blue * leftWeight);
+				}
+				else
+				{
+					leftChunk(i, j)->Red = (leftChunk(i + 1, j)->Red * rightWeight) + (leftChunk(i, j)->Red * leftWeight);
+					leftChunk(i, j)->Green = (leftChunk(i + 1, j)->Green * rightWeight) + (leftChunk(i, j)->Green * leftWeight);
+					leftChunk(i, j)->Blue = (leftChunk(i + 1, j)->Blue * rightWeight) + (leftChunk(i, j)->Blue * leftWeight);
+				}
+			}
 
-		//for (int j = 0; j < 3; ++j)
-		//{
-		//	for (int i = 0; i < leftChunk.TellWidth(); ++i)
-		//	{
-		//		//averaging the values for the border/seam
-		//		if (j == 0)
-		//		{
-		//			rightChunk(j, i)->Red = leftChunk(test, i)->Red;
-		//			rightChunk(j, i)->Green = leftChunk(test, i)->Green;
-		//			rightChunk(j, i)->Blue = leftChunk(test, i)->Blue;
-		//		}
-
-		//		if (j == 1)
-		//		{
-		//			rightChunk(j, i)->Red = (rightChunk(j, i)->Red + leftChunk(test, i)->Red) / 2;
-		//			rightChunk(j, i)->Green = (rightChunk(j, i)->Green + leftChunk(test, i)->Green) / 2;
-		//			rightChunk(j, i)->Blue = (rightChunk(j, i)->Blue + leftChunk(test, i)->Blue) / 2;
-
-		//			leftChunk(test, i)->Red = (rightChunk(j, i)->Red + leftChunk(test, i)->Red) / 2;
-		//			leftChunk(test, i)->Green = (rightChunk(j, i)->Green + leftChunk(test, i)->Green) / 2;
-		//			leftChunk(test, i)->Blue = (rightChunk(j, i)->Blue + leftChunk(test, i)->Blue) / 2;
-		//		}
-
-		//		if (j == 2)
-		//		{
-		//			rightChunk(j, i)->Red = (rightChunk(j, i)->Red + rightChunk(1, i)->Red) / 2;
-		//			rightChunk(j, i)->Green = (rightChunk(j, i)->Green + rightChunk(1, i)->Green) / 2;
-		//			rightChunk(j, i)->Blue = (rightChunk(j, i)->Blue + rightChunk(1, i)->Blue) / 2;
-
-		//			leftChunk(test, i)->Red = (leftChunk(test, i)->Red + leftChunk(test - 1, i)->Red) / 2;
-		//			leftChunk(test, i)->Green = (leftChunk(test, i)->Green + leftChunk(test - 1, i)->Green) / 2;
-		//			leftChunk(test, i)->Blue = (leftChunk(test, i)->Blue + leftChunk(test - 1, i)->Blue) / 2;
-		//		}
-		//	}
-
-		//	++test;
-		//}
+			leftWeight += weightChange;
+			rightWeight -= weightChange;
+		}
 
 		rightChunk.WriteToFile(rightChunkFilename);
+		leftChunk.WriteToFile(leftChunkFilename);
 	}
 
 	void TerrainManager::ResolveHorizontalSeam(const char* topChunkFilename, const char* bottomChunkFilename)
@@ -377,75 +343,66 @@ namespace TerrainRenderer
 		topChunk.ReadFromFile(topChunkFilename);
 		bottomChunk.ReadFromFile(bottomChunkFilename);
 
-		////testing out weighted average borders
-		//int test = 63;
+		//adding a weighted average border on the top side of the bottom chunk
+		int topChunkBorder = 63;
+		float weightChange = (float)(1.0f / mBorderWidth);
+		float topWeight = 1.0f;
+		float bottomWeight = 0.0f;
 
-		////unsigned char LRed, LGreen, LBlue, RRed, RGreen, RBlue;
-
-		////used to be j < 11
-		////then was j < 21
-		//for (int j = 0; j < 30; ++j)
-		//{
-		//	for (int i = 0; i < topChunk.TellWidth(); ++i)
-		//	{
-		//		//LRed = 
-
-
-		//		//weighting average
-		//		if (j == 0)
-		//		{
-		//			bottomChunk(j, i)->Red = (topChunk(test, i)->Red);
-		//			bottomChunk(j, i)->Green = (topChunk(test, i)->Green);
-		//			bottomChunk(j, i)->Blue = (topChunk(test, i)->Blue);
-
-		//		}
-		//		else
-		//		{
-		//			bottomChunk(j, i)->Red = ((bottomChunk(j - 1, i)->Red) + (bottomChunk(j, i)->Red)) / 2;
-		//			bottomChunk(j, i)->Green = ((bottomChunk(j - 1, i)->Green) + (bottomChunk(j, i)->Green)) / 2;
-		//			bottomChunk(j, i)->Blue = ((bottomChunk(j - 1, i)->Blue) + (bottomChunk(j, i)->Blue)) / 2;
-		//		}
-		//	}
-		//}
-
-
-		//previous stuff
-		int test = 61;
-
-		for (int i = 0; i < topChunk.TellWidth(); ++i)
+		for (int j = 0; j < mBorderWidth; ++j)
 		{
-			for (int j = 0; j < 3; ++j)
+			for (int i = 0; i < topChunk.TellWidth(); ++i)
 			{
-				//averaging the values for the border/seam
 				if (j == 0)
 				{
-					bottomChunk(i, j)->Red = topChunk(i, test)->Red;
-					bottomChunk(i, j)->Green = topChunk(i, test)->Green;
-					bottomChunk(i, j)->Blue = topChunk(i, test)->Blue;
+					bottomChunk(i, j)->Red = (topChunk(i, topChunkBorder)->Red * topWeight) + (bottomChunk(i, j)->Red * bottomWeight);
+					bottomChunk(i, j)->Green = (topChunk(i, topChunkBorder)->Green * topWeight) + (bottomChunk(i, j)->Green * bottomWeight);
+					bottomChunk(i, j)->Blue = (topChunk(i, topChunkBorder)->Blue * topWeight) + (bottomChunk(i, j)->Blue * bottomWeight);
 				}
-
-				if (j == 1)
+				else
 				{
-					bottomChunk(i, j)->Red = (bottomChunk(j, i)->Red + topChunk(test, i)->Red) / 2;
-					bottomChunk(i, j)->Green = (bottomChunk(j, i)->Green + topChunk(test, i)->Green) / 2;
-					bottomChunk(i, j)->Blue = (bottomChunk(j, i)->Blue + topChunk(test, i)->Blue) / 2;
-				}
-
-				if (j == 2)
-				{
-					bottomChunk(i, j)->Red = (bottomChunk(j, i)->Red + bottomChunk(1, i)->Red) / 2;
-					bottomChunk(i, j)->Green = (bottomChunk(j, i)->Green + bottomChunk(1, i)->Green) / 2;
-					bottomChunk(i, j)->Blue = (bottomChunk(j, i)->Blue + bottomChunk(1, i)->Blue) / 2;
+					bottomChunk(i, j)->Red = (bottomChunk(i, j - 1)->Red * topWeight) + (bottomChunk(i, j)->Red * bottomWeight);
+					bottomChunk(i, j)->Green = (bottomChunk(i, j - 1)->Green * topWeight) + (bottomChunk(i, j)->Green * bottomWeight);
+					bottomChunk(i, j)->Blue = (bottomChunk(i, j - 1)->Blue * topWeight) + (bottomChunk(i, j)->Blue * bottomWeight);
 				}
 			}
 
-			++test;
+			topWeight -= weightChange;
+			bottomWeight += weightChange;
+		}
+
+		//adding a weighted average border on the bottom side of the top chunk
+		int bottomChunkBorder = 0;
+		topWeight = 0.0f;
+		bottomWeight = 1.0f;
+
+		for (int j = 63; j > (63 - mBorderWidth); --j)
+		{
+			for (int i = 0; i < topChunk.TellWidth(); ++i)
+			{
+				if (j == 63)
+				{
+					topChunk(i, j)->Red = (bottomChunk(i, bottomChunkBorder)->Red * bottomWeight) + (topChunk(i, j)->Red * topWeight);
+					topChunk(i, j)->Green = (bottomChunk(i, bottomChunkBorder)->Green * bottomWeight) + (topChunk(i, j)->Green * topWeight);
+					topChunk(i, j)->Blue = (bottomChunk(i, bottomChunkBorder)->Blue * bottomWeight) + (topChunk(i, j)->Blue * topWeight);
+				}
+				else
+				{
+					topChunk(i, j)->Red = (topChunk(i, j + 1)->Red * bottomWeight) + (topChunk(i, j)->Red * topWeight);
+					topChunk(i, j)->Green = (topChunk(i, j + 1)->Green * bottomWeight) + (topChunk(i, j)->Green * topWeight);
+					topChunk(i, j)->Blue = (topChunk(i, j + 1)->Blue * bottomWeight) + (topChunk(i, j)->Blue * topWeight);
+				}
+			}
+
+			topWeight += weightChange;
+			bottomWeight -= weightChange;
 		}
 
 		bottomChunk.WriteToFile(bottomChunkFilename);
+		topChunk.WriteToFile(topChunkFilename);
 	}
 	
-	//partitioning the large scale map into 9 smaller 64x64 chunks
+	//Partitioning the large scale map into 9 smaller 64x64 chunks
 	void TerrainManager::PartitionScalingMap()
 	{
 		BMP largeMap, smallMap;

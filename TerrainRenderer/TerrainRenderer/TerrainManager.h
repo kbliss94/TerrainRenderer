@@ -72,5 +72,6 @@ namespace TerrainRenderer
 		};
 
 		ChunkBorders mCurrentChunkBorders;
+		const int mBorderWidth = 10;
 	};
 }

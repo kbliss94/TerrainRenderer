@@ -7,7 +7,7 @@ const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
 
-const bool STITCHING_ENABLED = false;
+const bool STITCHING_ENABLED = true;
 const bool GENERATION_ENABLED = false;
 
 #include "Input.h"

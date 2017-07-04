@@ -58,7 +58,7 @@ namespace TerrainRenderer
 			heightMapGenerator.SetSeed(Distribution(RandomSeedGenerator));
 		}
 
-		//testing multiple scaling height maps (maybe could use these original 9 over & over, just rearranged
+		//the filenames for the scaling chunks created from the big scaling map
 		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling0.bmp");
 		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling1.bmp");
 		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling2.bmp");
@@ -69,10 +69,10 @@ namespace TerrainRenderer
 		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling7.bmp");
 		mScalingFilenames.push_back("..//TerrainRenderer//data//scaling8.bmp");
 
-		//testing big scale map
+		//creating the big scaling map
 		heightMapGenerator.SetIsScaleMap(true);
-		char* mLargeScalingFilename = "..//TerrainRenderer//data//testScale.bmp";
-		heightMapGenerator.SetSeed(89 /*Distribution(RandomSeedGenerator)*/);
+		char* mLargeScalingFilename = "..//TerrainRenderer//data//scalingMap.bmp";
+		heightMapGenerator.SetSeed(70 /*Distribution(RandomSeedGenerator)*/);
 		heightMapGenerator.Generate(mLargeScalingFilename, (mHMWidth * 3), (mHMHeight * 3));
 
 		// Create the input object.  The input object will be used to handle reading the keyboard and mouse input from the user.
