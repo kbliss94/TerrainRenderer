@@ -5,6 +5,13 @@
 #include "Position.h"
 #include "EasyBMP.h"
 
+//below is used for cereal
+#include <cereal/archives/xml.hpp>
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/vector.hpp>
+//#include <sstream>
+#include <fstream>
+
 #include <vector>
 
 using namespace std;
@@ -31,6 +38,8 @@ namespace TerrainRenderer
 		void Render(ID3D11DeviceContext* context, ColorShader* colorShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection);
 
 		void GenerateChunks(Position* position);
+
+		void Serialize();
 
 	private:
 		void UpdateXPositionLeft();

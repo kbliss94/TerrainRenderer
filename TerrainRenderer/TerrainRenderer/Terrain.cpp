@@ -3,7 +3,7 @@
 namespace TerrainRenderer 
 {
 	Terrain::Terrain(): 
-		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mHeightMap(nullptr), mScalingMap(nullptr), mXOffset(0), mZOffset(0)
+		mVertexBuffer(nullptr), mIndexBuffer(nullptr), /*mHeightMap(nullptr), mScalingMap(nullptr),*/ mXOffset(0), mZOffset(0)
 	{
 
 	}
@@ -169,11 +169,13 @@ namespace TerrainRenderer
 		}
 
 		// Create the structure to hold the height map data.
-		mHeightMap = new HeightMapType[mTerrainWidth * mTerrainHeight];
-		if (!mHeightMap)
-		{
-			return false;
-		}
+		//mHeightMap = new HeightMapData[mTerrainWidth * mTerrainHeight];
+		mHeightMap.resize(mTerrainWidth * mTerrainHeight);
+
+		//if (!mHeightMap)
+		//{
+		//	return false;
+		//}
 
 		// Initialize the position in the image data buffer.
 		k = 0;
@@ -266,11 +268,13 @@ namespace TerrainRenderer
 		}
 
 		// Create the structure to hold the height map data.
-		mScalingMap = new HeightMapType[mTerrainWidth * mTerrainHeight];
-		if (!mScalingMap)
-		{
-			return false;
-		}
+		//mScalingMap = new HeightMapData[mTerrainWidth * mTerrainHeight];
+		mScalingMap.resize(mTerrainWidth * mTerrainHeight);
+
+		//if (!mScalingMap)
+		//{
+		//	return false;
+		//}
 
 		// Initialize the position in the image data buffer.
 		k = 0;
@@ -324,17 +328,17 @@ namespace TerrainRenderer
 
 	void Terrain::ShutdownHeightMap()
 	{
-		if (mHeightMap)
-		{
-			delete[] mHeightMap;
-			mHeightMap = 0;
-		}
+		//if (mHeightMap)
+		//{
+		//	delete[] mHeightMap;
+		//	mHeightMap = 0;
+		//}
 
-		if (mScalingMap)
-		{
-			delete[] mScalingMap;
-			mScalingMap = 0;
-		}
+		//if (mScalingMap)
+		//{
+		//	delete[] mScalingMap;
+		//	mScalingMap = 0;
+		//}
 
 		return;
 	}

@@ -4,21 +4,42 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 #include <stdio.h>
+#include <memory>
+#include <vector>
+#include <cereal/access.hpp>
+#include <cereal/archives/xml.hpp>
+
+using namespace std;
 
 namespace TerrainRenderer
 {
 	class Terrain
 	{
-	private:
+	public:
+	//private:
 		struct VertexType
 		{
 			D3DXVECTOR3 position;
 			D3DXVECTOR4 color;
 		};
 
-		struct HeightMapType
+		struct HeightMapData
 		{
 			float x, y, z;
+
+			HeightMapData() {};
+
+			HeightMapData(float ix, float iy, float iz):
+				x(ix), y(iy), z(iz)
+			{
+				
+			};
+
+			template<class Archive>
+			void serialize(Archive& archive)
+			{
+				archive(x, y, z);
+			};
 		};
 
 	public:
@@ -41,6 +62,17 @@ namespace TerrainRenderer
 		int GetIndexCount();
 		void UpdatePosition(int xUpdate, int zUpdate);
 
+
+
+		vector<HeightMapData> mHeightMap;
+		vector<HeightMapData> mScalingMap;
+
+		template<class Archive>
+		void serialize(Archive& archive)
+		{
+			archive(mHeightMap);
+		};
+
 	private:
 		bool LoadHeightMap(char* filename);
 		bool LoadScalingMap(char* filename);
@@ -56,7 +88,7 @@ namespace TerrainRenderer
 		int mTerrainWidth, mTerrainHeight;
 		int mVertexCount, mIndexCount;
 		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
-		HeightMapType* mHeightMap;
+		//vector<HeightMapData> mHeightMap;
 
 		const float mVertexColorR = 1.0f;
 		const float mVertexColorG = 1.0f;
@@ -70,7 +102,9 @@ namespace TerrainRenderer
 
 		const float mHeightScaling = 0.5f;
 		char* mHeightScalingMap;
-		HeightMapType* mScalingMap;
+		//vector<HeightMapData> mScalingMap;
+
+		friend class cereal::access;
 	};
 }
 

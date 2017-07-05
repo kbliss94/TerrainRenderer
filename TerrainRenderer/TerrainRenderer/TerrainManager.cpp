@@ -100,6 +100,10 @@ namespace TerrainRenderer
 			}
 		}
 
+		//testing serialization
+		Serialize();
+		//
+
 		return true;
 	}
 
@@ -143,6 +147,8 @@ namespace TerrainRenderer
 			(mGridTopRow[i])->Render(context);
 			colorShader->Render(context, (mGridTopRow[i])->GetIndexCount(), world, view, projection);
 		}
+
+		Serialize();
 	}
 
 	void TerrainManager::GenerateChunks(Position* position)
@@ -182,6 +188,29 @@ namespace TerrainRenderer
 			UpdateChunkPositions();
 			//update current chunk
 			UpdateCurrentChunk(xPos, zPos);
+		}
+	}
+
+	void TerrainManager::Serialize()
+	{
+		//trying to serialize/deserialize an array of HeightMapData structs (binary)
+		Terrain output;
+
+		char* filename = "..//TerrainRenderer//data//data.bin";
+
+		{
+			std::ofstream os(filename, std::ios::binary);
+
+			cereal::BinaryOutputArchive oArchive(os);
+			oArchive(*(mGridBottomRow[0]));
+		}
+
+		{
+			std::ifstream is(filename, std::ios::binary);
+			
+
+			cereal::BinaryInputArchive iArchive(is);
+			iArchive(output);
 		}
 	}
 
