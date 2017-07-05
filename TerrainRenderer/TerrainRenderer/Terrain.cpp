@@ -3,7 +3,7 @@
 namespace TerrainRenderer 
 {
 	Terrain::Terrain(): 
-		mVertexBuffer(nullptr), mIndexBuffer(nullptr), /*mHeightMap(nullptr), mScalingMap(nullptr),*/ mXOffset(0), mZOffset(0)
+		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mXOffset(0), mZOffset(0)
 	{
 
 	}
@@ -65,7 +65,6 @@ namespace TerrainRenderer
 			return false;
 		}
 
-
 		return true;
 	}
 
@@ -103,6 +102,15 @@ namespace TerrainRenderer
 		InitializeBuffers(mDevice);
 	}
 
+	void Terrain::UpdateHeightMap(char* heightMapFilename)
+	{
+		//loading in the height map
+		LoadHeightMap(heightMapFilename);
+
+		//normalizing the height of the height map
+		NormalizeHeightMap();
+	}
+
 	int Terrain::GetGridPositionX()
 	{
 		return mGridPositionX;
@@ -117,6 +125,14 @@ namespace TerrainRenderer
 	{
 		mGridPositionX = x;
 		mGridPositionY = y;
+	}
+
+	void Terrain::SetHeightMapInfo(std::shared_ptr<Terrain> terrain)
+	{
+		mHeightMap = terrain->mHeightMap;
+		mScalingMap = terrain->mScalingMap;
+		mGridPositionX = terrain->mGridPositionX;
+		mGridPositionY = terrain->mGridPositionY;
 	}
 
 	bool Terrain::LoadHeightMap(char* filename)

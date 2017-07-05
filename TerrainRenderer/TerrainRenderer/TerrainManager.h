@@ -4,6 +4,7 @@
 #include "ColorShader.h"
 #include "Position.h"
 #include "EasyBMP.h"
+#include "HeightMap.h"
 
 //below is used for cereal
 #include <cereal/archives/binary.hpp>
@@ -12,6 +13,7 @@
 #include <fstream>
 
 #include <vector>
+#include <random>
 
 using namespace std;
 
@@ -38,7 +40,16 @@ namespace TerrainRenderer
 
 		void GenerateChunks(Position* position);
 
+		//!Serializes the terrain chunk param 
+		/*
+		Doesn't check to make sure that the data hasn't already been serialized
+		*/
 		void Serialize(std::shared_ptr<Terrain> terrainChunk);
+
+		//!Pass in the position of the grid that you would like to get the height map for & the terrain chunk that should be populated
+		/*
+		\return true if the data was deserialized, false if the data has not been serialized yet
+		*/
 		bool Deserialize(int gridX, int gridY, std::shared_ptr<Terrain>& terrainChunk);
 
 	private:
@@ -53,6 +64,9 @@ namespace TerrainRenderer
 		void ResolveVerticalSeam(const char* leftChunkFilename, const char* rightChunkFilename);
 		void ResolveHorizontalSeam(const char* topChunkFilename, const char* bottomChunkFilename);
 		void PartitionScalingMap();
+
+		//returns the filename of the new height map
+		char* GenerateNewHeightMap();
 
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;
@@ -84,5 +98,11 @@ namespace TerrainRenderer
 		const int mBorderWidth = 10;
 
 		string mSerializationFilename = "..//TerrainRenderer//data//chunkData//chunk";
+		vector<ChunkOffset>* mStartingGridPositions;
+		HeightMap mHeightMapGenerator;
+		default_random_engine mRandomSeedGenerator;
+		uniform_int_distribution<int> mDistribution;
+		const int mHMHeight = 64;
+		const int mHMWidth = 64;
 	};
 }

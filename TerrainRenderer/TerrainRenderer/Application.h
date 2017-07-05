@@ -7,8 +7,8 @@ const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
 
-const bool STITCHING_ENABLED = true;
-const bool GENERATION_ENABLED = false;
+const bool STITCHING_ENABLED = false;
+const bool GENERATION_ENABLED = true;
 
 #include "Input.h"
 #include "DirectX3D.h"
@@ -68,8 +68,8 @@ namespace TerrainRenderer
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;
 		char* mLargeScalingFilename;
-		default_random_engine RandomSeedGenerator;
-		uniform_int_distribution<int> Distribution;
+		default_random_engine mRandomSeedGenerator;
+		uniform_int_distribution<int> mDistribution;
 	};
 }
 

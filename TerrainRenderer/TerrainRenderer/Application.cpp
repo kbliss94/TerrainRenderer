@@ -55,7 +55,7 @@ namespace TerrainRenderer
 			heightMapGenerator.Generate(mHeightMapFilenames[i], mHMWidth, mHMHeight);
 
 			//generate random int for the seed, set the seed
-			heightMapGenerator.SetSeed(Distribution(RandomSeedGenerator));
+			heightMapGenerator.SetSeed(mDistribution(mRandomSeedGenerator));
 		}
 
 		//the filenames for the scaling chunks created from the big scaling map

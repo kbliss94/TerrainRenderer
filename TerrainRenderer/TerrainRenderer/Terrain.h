@@ -62,12 +62,18 @@ namespace TerrainRenderer
 		int GetIndexCount();
 		void UpdatePosition(int xUpdate, int zUpdate);
 
+		//will need to add a scaling filename as a param
+		void UpdateHeightMap(char* heightMapFilename);
+
 		int GetGridPositionX();
 		int GetGridPositionY();
 		void SetGridPosition(int x, int y);
 
-		//vector<HeightMapData> mHeightMap;
-		//vector<HeightMapData> mScalingMap;
+		//!Replaces current data with deserialized data without destroying other data
+		/*
+		Replaces: mHeightMap, mScalingMap, mGridPositionX, mGridPositionY
+		*/
+		void SetHeightMapInfo(std::shared_ptr<Terrain> terrain);
 
 		template<class Archive>
 		void serialize(Archive& archive)

@@ -29,15 +29,28 @@ namespace TerrainRenderer
 			{126, 126}
 		};
 
+		mStartingGridPositions = new vector<ChunkOffset>
+		{
+			{-1, -1},
+			{-1, 0},
+			{-1, 1},
+			{0, -1},
+			{0, 0},
+			{0, 1},
+			{1, -1},
+			{1, 0},
+			{1, 1}
+		};
+
 		mGridBottomRow.resize(mNumGridRows);
 		mGridMiddleRow.resize(mNumGridRows);
 		mGridTopRow.resize(mNumGridRows);
 
 		for (int i = 0; i < mNumGridRows; ++i)
 		{
-			mGridBottomRow[i] = make_shared<Terrain>();	//new Terrain()
-			mGridMiddleRow[i] = make_shared<Terrain>();	//new Terrain()
-			mGridTopRow[i] = make_shared<Terrain>();	//new Terrain()
+			mGridBottomRow[i] = make_shared<Terrain>();
+			mGridMiddleRow[i] = make_shared<Terrain>();
+			mGridTopRow[i] = make_shared<Terrain>();
 		}
 
 		//sets the middle chunk as the current chunk on startup
@@ -94,27 +107,25 @@ namespace TerrainRenderer
 			for (int i = 0; i < mNumGridRows; ++i)
 			{
 				(mGridBottomRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], (*mBottomRowOffsets)[i].x, (*mBottomRowOffsets)[i].z);
+				mGridBottomRow[i]->SetGridPosition((*mStartingGridPositions)[filenameIndex].x, (*mStartingGridPositions)[filenameIndex].z);
 				++filenameIndex;
 				(mGridMiddleRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], (*mMiddleRowOffsets)[i].x, (*mMiddleRowOffsets)[i].z);
+				mGridMiddleRow[i]->SetGridPosition((*mStartingGridPositions)[filenameIndex].x, (*mStartingGridPositions)[filenameIndex].z);
 				++filenameIndex;
 				(mGridTopRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], (*mTopRowOffsets)[i].x, (*mTopRowOffsets)[i].z);
+				mGridTopRow[i]->SetGridPosition((*mStartingGridPositions)[filenameIndex].x, (*mStartingGridPositions)[filenameIndex].z);
 				++filenameIndex;
 			}
 		}
 
 		//testing serialization
-		//Serialize();
-		std::shared_ptr<Terrain> outputPtr = make_shared<Terrain>();
+		//std::shared_ptr<Terrain> outputPtr = mGridTopRow[0];
 
-		mGridBottomRow[0]->SetGridPosition(2, 2);
+		//bool result = false;
 
-		bool result = false;
+		//Serialize(mGridBottomRow[0]);
 
-		//should create chunk22.bin
-		Serialize(mGridBottomRow[0]);
-
-		//outputPtr should have the contents of mGridBottomRow[0]
-		result = Deserialize(2, 2, outputPtr);
+		//result = Deserialize(-1, -1, outputPtr);
 
 		return true;
 	}
@@ -179,12 +190,8 @@ namespace TerrainRenderer
 		}
 	}
 
-	//returns true if the data was serialized, returns false if the data was already serialized
 	void TerrainManager::Serialize(std::shared_ptr<Terrain> terrainChunk)
 	{
-		//what if the grid point has been serialized?
-			//check to make sure the stream is false
-
 		string filename = mSerializationFilename + to_string(terrainChunk->GetGridPositionX()) + to_string(terrainChunk->GetGridPositionY()) + ".bin";
 
 		std::ofstream os(filename, std::ios::binary);
@@ -196,21 +203,22 @@ namespace TerrainRenderer
 		}
 	}
 
-	//pass in the position of the grid that you would like to get the height map for & the terrain chunk that should be populated
-	//returns true if the data was deserialized, returns false if the data has not been serialized
 	bool TerrainManager::Deserialize(int gridX, int gridY, std::shared_ptr<Terrain>& terrainChunk)
 	{
-		//what if the grid point hasn't been serialized yet?
-			//check to make sure the stream is true
-
 		string filename = mSerializationFilename + to_string(gridX) + to_string(gridY) + ".bin";
-
 		std::ifstream is(filename, std::ios::binary);
 
+		//checking to make sure the data to retrieve has already been serialized (exists)
 		if (is)
 		{
+			shared_ptr<Terrain> temp = make_shared<Terrain>();
+
 			cereal::BinaryInputArchive archive(is);
-			archive(terrainChunk);
+			//archive(terrainChunk);
+			archive(temp);
+
+			terrainChunk->SetHeightMapInfo(temp);
+
 
 			return true;
 		}
@@ -249,6 +257,29 @@ namespace TerrainRenderer
 			(*mMiddleRowOffsets)[i].z = (*mMiddleRowOffsets)[i].z + mChunkOffset;
 			(*mBottomRowOffsets)[i].z = (*mBottomRowOffsets)[i].z + mChunkOffset;
 		}
+
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			//serializing the bottom row & setting its height map info equal to the middle row height map info
+			Serialize(mGridBottomRow[i]);
+			mGridBottomRow[i]->SetHeightMapInfo(mGridMiddleRow[i]);
+
+			//setting the middle row height map info equal to the top row height map info
+			mGridMiddleRow[i]->SetHeightMapInfo(mGridTopRow[i]);
+
+			//updating the grid positions for the top row
+			mGridTopRow[i]->SetGridPosition(mGridTopRow[i]->GetGridPositionX(), (mGridTopRow[i]->GetGridPositionY() + 1));
+		}
+
+		//deserializing saved height maps or generating new height maps for the top row
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			//if height map data isn't saved for the top grid positions, generate 3 new height maps for the top row
+			if (!Deserialize(mGridTopRow[i]->GetGridPositionX(), mGridTopRow[i]->GetGridPositionY(), mGridTopRow[i]))
+			{
+				mGridTopRow[i]->UpdateHeightMap(GenerateNewHeightMap());
+			}
+		}
 	}
 
 	void TerrainManager::UpdateZPositionDown()
@@ -259,6 +290,29 @@ namespace TerrainRenderer
 			(*mTopRowOffsets)[i].z = (*mTopRowOffsets)[i].z - mChunkOffset;
 			(*mMiddleRowOffsets)[i].z = (*mMiddleRowOffsets)[i].z - mChunkOffset;
 			(*mBottomRowOffsets)[i].z = (*mBottomRowOffsets)[i].z - mChunkOffset;
+		}
+
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			//serialize the top row & set its height map info equal to the middle row height map info
+			Serialize(mGridTopRow[i]);
+			mGridTopRow[i]->SetHeightMapInfo(mGridMiddleRow[i]);
+
+			//setting the middle row height map info equal to the bottom row height map info
+			mGridMiddleRow[i]->SetHeightMapInfo(mGridBottomRow[i]);
+
+			//updating the grid positions for the bottom row
+			mGridBottomRow[i]->SetGridPosition(mGridBottomRow[i]->GetGridPositionX(), (mGridBottomRow[i]->GetGridPositionY() - 1));
+		}
+
+		//deserializing saved height maps or generating new height maps for the bottom row
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			//if height map data isn't saved for the bottom grid positions, generate 3 new height maps for the bottom row
+			if (!Deserialize(mGridBottomRow[i]->GetGridPositionX(), mGridBottomRow[i]->GetGridPositionY(), mGridBottomRow[i]))
+			{
+				mGridBottomRow[i]->UpdateHeightMap(GenerateNewHeightMap());
+			}
 		}
 	}
 
@@ -479,5 +533,16 @@ namespace TerrainRenderer
 				minI += width;
 			}
 		}
+	}
+
+	char* TerrainManager::GenerateNewHeightMap()
+	{
+		char* filename = "..//TerrainRenderer//data//newMap.bmp";
+
+		mHeightMapGenerator.SetIsScaleMap(false);
+		mHeightMapGenerator.SetSeed(mDistribution(mRandomSeedGenerator));
+		mHeightMapGenerator.Generate(filename, mHMHeight, mHMWidth);
+
+		return filename;
 	}
 }
