@@ -29,9 +29,10 @@ namespace TerrainRenderer
 		mXOffset = xOffset;
 		mZOffset = zOffset;
 		mHeightScalingMap = scalingFilename;
+		mHeightMapFilename = heightMapFilename;
 
 		// Load in the height map for the terrain.
-		result = LoadHeightMap(heightMapFilename);
+		result = LoadHeightMap(mHeightMapFilename);
 		if (!result)
 		{
 			return false;
@@ -102,10 +103,10 @@ namespace TerrainRenderer
 		InitializeBuffers(mDevice);
 	}
 
-	void Terrain::UpdateHeightMap(char* heightMapFilename)
+	void Terrain::UpdateHeightMap()
 	{
 		//loading in the height map
-		LoadHeightMap(heightMapFilename);
+		LoadHeightMap(mHeightMapFilename);
 
 		//normalizing the height of the height map
 		NormalizeHeightMap();
@@ -125,6 +126,11 @@ namespace TerrainRenderer
 	{
 		mGridPositionX = x;
 		mGridPositionY = y;
+	}
+
+	char* Terrain::GetHeightMapFilename()
+	{
+		return mHeightMapFilename;
 	}
 
 	void Terrain::SetHeightMapInfo(std::shared_ptr<Terrain> terrain)

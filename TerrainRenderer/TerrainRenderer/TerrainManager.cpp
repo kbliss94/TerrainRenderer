@@ -54,7 +54,22 @@ namespace TerrainRenderer
 		}
 
 		//sets the middle chunk as the current chunk on startup
-		mCurrentChunkBorders = { (float)(*mMiddleRowOffsets)[1].z, (float)((*mMiddleRowOffsets)[1].z + mChunkOffset), (float)(*mMiddleRowOffsets)[1].x, (float)((*mMiddleRowOffsets)[1].x + mChunkOffset) };
+		mCurrentChunkBorders = { (float)(*mMiddleRowOffsets)[1].z, (float)((*mMiddleRowOffsets)[1].z + mChunkOffset), (float)(*mMiddleRowOffsets)[1].x, (float)((*mMiddleRowOffsets)[1].x + mChunkOffset) };		
+	
+		//setting up the left column vector
+		mGridLeftColumn.push_back(mGridTopRow[0]);
+		mGridLeftColumn.push_back(mGridMiddleRow[0]);
+		mGridLeftColumn.push_back(mGridBottomRow[0]);
+
+		//setting up the middle column vector
+		mGridMiddleColumn.push_back(mGridTopRow[1]);
+		mGridMiddleColumn.push_back(mGridMiddleRow[1]);
+		mGridMiddleColumn.push_back(mGridBottomRow[1]);
+
+		//setting up the right column vector
+		mGridRightColumn.push_back(mGridTopRow[2]);
+		mGridRightColumn.push_back(mGridMiddleRow[2]);
+		mGridRightColumn.push_back(mGridBottomRow[2]);
 	}
 
 	TerrainManager::TerrainManager(const TerrainManager& rhs)
@@ -214,11 +229,9 @@ namespace TerrainRenderer
 			shared_ptr<Terrain> temp = make_shared<Terrain>();
 
 			cereal::BinaryInputArchive archive(is);
-			//archive(terrainChunk);
 			archive(temp);
 
 			terrainChunk->SetHeightMapInfo(temp);
-
 
 			return true;
 		}
@@ -235,6 +248,29 @@ namespace TerrainRenderer
 			(*mMiddleRowOffsets)[i].x = (*mMiddleRowOffsets)[i].x - mChunkOffset;
 			(*mBottomRowOffsets)[i].x = (*mBottomRowOffsets)[i].x - mChunkOffset;
 		}
+
+		//serializing the right column & setting its height map info equal to the middle column height map info
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			Serialize(mGridRightColumn[i]);
+			mGridRightColumn[i]->SetHeightMapInfo(mGridMiddleColumn[i]);
+
+			//setting the middle column height map info equal to the left column height map info
+			mGridMiddleColumn[i]->SetHeightMapInfo(mGridLeftColumn[i]);
+
+			//updating the grid positions for the left column
+			mGridLeftColumn[i]->SetGridPosition((mGridLeftColumn[0]->GetGridPositionX() - 1), mGridLeftColumn[0]->GetGridPositionY());
+		}
+
+		//deserializing saved height maps or generating new height maps for the left column
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			if (!Deserialize(mGridLeftColumn[i]->GetGridPositionX(), mGridLeftColumn[i]->GetGridPositionY(), mGridLeftColumn[i]))
+			{
+				GenerateNewHeightMap(mGridLeftColumn[i]->GetHeightMapFilename());
+				mGridLeftColumn[i]->UpdateHeightMap();
+			}
+		}
 	}
 
 	void TerrainManager::UpdateXPositionRight()
@@ -245,6 +281,29 @@ namespace TerrainRenderer
 			(*mTopRowOffsets)[i].x = (*mTopRowOffsets)[i].x + mChunkOffset;
 			(*mMiddleRowOffsets)[i].x = (*mMiddleRowOffsets)[i].x + mChunkOffset;
 			(*mBottomRowOffsets)[i].x = (*mBottomRowOffsets)[i].x + mChunkOffset;
+		}
+
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			//serializing the left column & setting its height map info equal to the middle column height map info
+			Serialize(mGridLeftColumn[i]);
+			mGridLeftColumn[i]->SetHeightMapInfo(mGridMiddleColumn[i]);
+
+			//setting the middle column height map info equal to the right column height map info
+			mGridMiddleColumn[i]->SetHeightMapInfo(mGridRightColumn[i]);
+
+			//updating the grid positions for the right column
+			mGridRightColumn[i]->SetGridPosition((mGridRightColumn[i]->GetGridPositionX() + 1), mGridRightColumn[i]->GetGridPositionY());
+		}
+
+		//deserializing saved height maps or generating new height maps for the right column
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			if (!Deserialize(mGridRightColumn[i]->GetGridPositionX(), mGridRightColumn[i]->GetGridPositionY(), mGridRightColumn[i]))
+			{
+				GenerateNewHeightMap(mGridRightColumn[i]->GetHeightMapFilename());
+				mGridRightColumn[i]->UpdateHeightMap();
+			}
 		}
 	}
 
@@ -277,7 +336,8 @@ namespace TerrainRenderer
 			//if height map data isn't saved for the top grid positions, generate 3 new height maps for the top row
 			if (!Deserialize(mGridTopRow[i]->GetGridPositionX(), mGridTopRow[i]->GetGridPositionY(), mGridTopRow[i]))
 			{
-				mGridTopRow[i]->UpdateHeightMap(GenerateNewHeightMap());
+				GenerateNewHeightMap(mGridTopRow[i]->GetHeightMapFilename());
+				mGridTopRow[i]->UpdateHeightMap();
 			}
 		}
 	}
@@ -311,7 +371,8 @@ namespace TerrainRenderer
 			//if height map data isn't saved for the bottom grid positions, generate 3 new height maps for the bottom row
 			if (!Deserialize(mGridBottomRow[i]->GetGridPositionX(), mGridBottomRow[i]->GetGridPositionY(), mGridBottomRow[i]))
 			{
-				mGridBottomRow[i]->UpdateHeightMap(GenerateNewHeightMap());
+				GenerateNewHeightMap(mGridBottomRow[i]->GetHeightMapFilename());
+				mGridBottomRow[i]->UpdateHeightMap();
 			}
 		}
 	}
@@ -535,14 +596,10 @@ namespace TerrainRenderer
 		}
 	}
 
-	char* TerrainManager::GenerateNewHeightMap()
+	void TerrainManager::GenerateNewHeightMap(char* filename)
 	{
-		char* filename = "..//TerrainRenderer//data//newMap.bmp";
-
 		mHeightMapGenerator.SetIsScaleMap(false);
 		mHeightMapGenerator.SetSeed(mDistribution(mRandomSeedGenerator));
 		mHeightMapGenerator.Generate(filename, mHMHeight, mHMWidth);
-
-		return filename;
 	}
 }

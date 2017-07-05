@@ -63,11 +63,13 @@ namespace TerrainRenderer
 		void UpdatePosition(int xUpdate, int zUpdate);
 
 		//will need to add a scaling filename as a param
-		void UpdateHeightMap(char* heightMapFilename);
+		void UpdateHeightMap();
 
 		int GetGridPositionX();
 		int GetGridPositionY();
 		void SetGridPosition(int x, int y);
+
+		char* GetHeightMapFilename();
 
 		//!Replaces current data with deserialized data without destroying other data
 		/*
@@ -97,6 +99,7 @@ namespace TerrainRenderer
 		int mVertexCount, mIndexCount;
 		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
 		vector<HeightMapData> mHeightMap;
+		char* mHeightMapFilename;
 
 		const float mVertexColorR = 1.0f;
 		const float mVertexColorG = 1.0f;

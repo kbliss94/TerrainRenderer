@@ -65,8 +65,7 @@ namespace TerrainRenderer
 		void ResolveHorizontalSeam(const char* topChunkFilename, const char* bottomChunkFilename);
 		void PartitionScalingMap();
 
-		//returns the filename of the new height map
-		char* GenerateNewHeightMap();
+		void GenerateNewHeightMap(char* filename);
 
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;
@@ -74,6 +73,10 @@ namespace TerrainRenderer
 		vector<std::shared_ptr<Terrain>> mGridBottomRow;
 		vector<std::shared_ptr<Terrain>> mGridMiddleRow;
 		vector<std::shared_ptr<Terrain>> mGridTopRow;
+
+		vector<std::shared_ptr<Terrain>> mGridLeftColumn;
+		vector<std::shared_ptr<Terrain>> mGridMiddleColumn;
+		vector<std::shared_ptr<Terrain>> mGridRightColumn;
 
 		struct ChunkOffset
 		{
@@ -104,5 +107,8 @@ namespace TerrainRenderer
 		uniform_int_distribution<int> mDistribution;
 		const int mHMHeight = 64;
 		const int mHMWidth = 64;
+		const int mLeftColumnOffset = 0;
+		const int mMiddleColumnOffset = 1;
+		const int mRightColumnOffset = 2;
 	};
 }
