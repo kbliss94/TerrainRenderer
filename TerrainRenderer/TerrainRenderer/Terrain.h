@@ -62,15 +62,17 @@ namespace TerrainRenderer
 		int GetIndexCount();
 		void UpdatePosition(int xUpdate, int zUpdate);
 
+		int GetGridPositionX();
+		int GetGridPositionY();
+		void SetGridPosition(int x, int y);
 
-
-		vector<HeightMapData> mHeightMap;
-		vector<HeightMapData> mScalingMap;
+		//vector<HeightMapData> mHeightMap;
+		//vector<HeightMapData> mScalingMap;
 
 		template<class Archive>
 		void serialize(Archive& archive)
 		{
-			archive(mHeightMap);
+			archive(mHeightMap, mScalingMap, mGridPositionX, mGridPositionY);
 		};
 
 	private:
@@ -88,7 +90,7 @@ namespace TerrainRenderer
 		int mTerrainWidth, mTerrainHeight;
 		int mVertexCount, mIndexCount;
 		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
-		//vector<HeightMapData> mHeightMap;
+		vector<HeightMapData> mHeightMap;
 
 		const float mVertexColorR = 1.0f;
 		const float mVertexColorG = 1.0f;
@@ -97,12 +99,14 @@ namespace TerrainRenderer
 
 		int mXOffset;
 		int mZOffset;
+		int mGridPositionX;
+		int mGridPositionY;
 
 		ID3D11Device* mDevice;
 
 		const float mHeightScaling = 0.5f;
 		char* mHeightScalingMap;
-		//vector<HeightMapData> mScalingMap;
+		vector<HeightMapData> mScalingMap;
 
 		friend class cereal::access;
 	};

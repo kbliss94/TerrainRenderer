@@ -90,7 +90,6 @@ namespace TerrainRenderer
 		return;
 	}
 
-
 	int Terrain::GetIndexCount()
 	{
 		return mIndexCount;
@@ -102,6 +101,22 @@ namespace TerrainRenderer
 		mZOffset = zUpdate;
 
 		InitializeBuffers(mDevice);
+	}
+
+	int Terrain::GetGridPositionX()
+	{
+		return mGridPositionX;
+	}
+
+	int Terrain::GetGridPositionY()
+	{
+		return mGridPositionY;
+	}
+
+	void Terrain::SetGridPosition(int x, int y)
+	{
+		mGridPositionX = x;
+		mGridPositionY = y;
 	}
 
 	bool Terrain::LoadHeightMap(char* filename)

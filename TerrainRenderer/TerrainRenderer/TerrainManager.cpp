@@ -1,6 +1,8 @@
 #include "Application.h"
 #include "TerrainManager.h"
 
+using namespace std;
+
 namespace TerrainRenderer
 {
 	TerrainManager::TerrainManager(): 
@@ -33,9 +35,9 @@ namespace TerrainRenderer
 
 		for (int i = 0; i < mNumGridRows; ++i)
 		{
-			mGridBottomRow[i] = new Terrain;
-			mGridMiddleRow[i] = new Terrain;
-			mGridTopRow[i] = new Terrain;
+			mGridBottomRow[i] = make_shared<Terrain>();	//new Terrain()
+			mGridMiddleRow[i] = make_shared<Terrain>();	//new Terrain()
+			mGridTopRow[i] = make_shared<Terrain>();	//new Terrain()
 		}
 
 		//sets the middle chunk as the current chunk on startup
@@ -101,37 +103,25 @@ namespace TerrainRenderer
 		}
 
 		//testing serialization
-		Serialize();
-		//
+		//Serialize();
+		std::shared_ptr<Terrain> outputPtr = make_shared<Terrain>();
+
+		mGridBottomRow[0]->SetGridPosition(2, 2);
+
+		bool result = false;
+
+		//should create chunk22.bin
+		Serialize(mGridBottomRow[0]);
+
+		//outputPtr should have the contents of mGridBottomRow[0]
+		result = Deserialize(2, 2, outputPtr);
 
 		return true;
 	}
 
 	void TerrainManager::Shutdown()
 	{
-		for (int i = 0; i < mNumGridRows; ++i)
-		{
-			if (mGridBottomRow[i])
-			{
-				(mGridBottomRow[i])->Shutdown();
-				delete mGridBottomRow[i];
-				mGridBottomRow[i] = 0;
-			}
 
-			if (mGridMiddleRow[i])
-			{
-				(mGridMiddleRow[i])->Shutdown();
-				delete mGridMiddleRow[i];
-				mGridMiddleRow[i] = 0;
-			}
-
-			if (mGridTopRow[i])
-			{
-				(mGridTopRow[i])->Shutdown();
-				delete mGridTopRow[i];
-				mGridTopRow[i] = 0;
-			}
-		}
 	}
 
 	void TerrainManager::Render(ID3D11DeviceContext* context, ColorShader* colorShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection)
@@ -147,8 +137,6 @@ namespace TerrainRenderer
 			(mGridTopRow[i])->Render(context);
 			colorShader->Render(context, (mGridTopRow[i])->GetIndexCount(), world, view, projection);
 		}
-
-		Serialize();
 	}
 
 	void TerrainManager::GenerateChunks(Position* position)
@@ -191,27 +179,43 @@ namespace TerrainRenderer
 		}
 	}
 
-	void TerrainManager::Serialize()
+	//returns true if the data was serialized, returns false if the data was already serialized
+	void TerrainManager::Serialize(std::shared_ptr<Terrain> terrainChunk)
 	{
-		//trying to serialize/deserialize an array of HeightMapData structs (binary)
-		Terrain output;
+		//what if the grid point has been serialized?
+			//check to make sure the stream is false
 
-		char* filename = "..//TerrainRenderer//data//data.bin";
+		string filename = mSerializationFilename + to_string(terrainChunk->GetGridPositionX()) + to_string(terrainChunk->GetGridPositionY()) + ".bin";
 
+		std::ofstream os(filename, std::ios::binary);
+
+		if (static_cast<bool>(os))
 		{
-			std::ofstream os(filename, std::ios::binary);
+			cereal::BinaryOutputArchive archive(os);
+			archive(terrainChunk);
+		}
+	}
 
-			cereal::BinaryOutputArchive oArchive(os);
-			oArchive(*(mGridBottomRow[0]));
+	//pass in the position of the grid that you would like to get the height map for & the terrain chunk that should be populated
+	//returns true if the data was deserialized, returns false if the data has not been serialized
+	bool TerrainManager::Deserialize(int gridX, int gridY, std::shared_ptr<Terrain>& terrainChunk)
+	{
+		//what if the grid point hasn't been serialized yet?
+			//check to make sure the stream is true
+
+		string filename = mSerializationFilename + to_string(gridX) + to_string(gridY) + ".bin";
+
+		std::ifstream is(filename, std::ios::binary);
+
+		if (is)
+		{
+			cereal::BinaryInputArchive archive(is);
+			archive(terrainChunk);
+
+			return true;
 		}
 
-		{
-			std::ifstream is(filename, std::ios::binary);
-			
-
-			cereal::BinaryInputArchive iArchive(is);
-			iArchive(output);
-		}
+		return false;
 	}
 
 	void TerrainManager::UpdateXPositionLeft()

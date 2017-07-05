@@ -6,10 +6,9 @@
 #include "EasyBMP.h"
 
 //below is used for cereal
-#include <cereal/archives/xml.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/vector.hpp>
-//#include <sstream>
+#include <cereal/types/memory.hpp>
 #include <fstream>
 
 #include <vector>
@@ -39,7 +38,8 @@ namespace TerrainRenderer
 
 		void GenerateChunks(Position* position);
 
-		void Serialize();
+		void Serialize(std::shared_ptr<Terrain> terrainChunk);
+		bool Deserialize(int gridX, int gridY, std::shared_ptr<Terrain>& terrainChunk);
 
 	private:
 		void UpdateXPositionLeft();
@@ -57,9 +57,9 @@ namespace TerrainRenderer
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;
 		char* mLargeScalingMap;
-		vector<Terrain*> mGridBottomRow;
-		vector<Terrain*> mGridMiddleRow;
-		vector<Terrain*> mGridTopRow;
+		vector<std::shared_ptr<Terrain>> mGridBottomRow;
+		vector<std::shared_ptr<Terrain>> mGridMiddleRow;
+		vector<std::shared_ptr<Terrain>> mGridTopRow;
 
 		struct ChunkOffset
 		{
@@ -82,5 +82,7 @@ namespace TerrainRenderer
 
 		ChunkBorders mCurrentChunkBorders;
 		const int mBorderWidth = 10;
+
+		string mSerializationFilename = "..//TerrainRenderer//data//chunkData//chunk";
 	};
 }
