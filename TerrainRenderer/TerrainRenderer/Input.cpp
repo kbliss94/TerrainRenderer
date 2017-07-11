@@ -388,3 +388,14 @@ bool Input::IsEPressed()
 
 	return false;
 }
+
+bool Input::IsGPressed()
+{
+	// Do a bitwise and on the keyboard state to check if the key is currently being pressed.
+	if (m_keyboardState[DIK_G] & 0x80)
+	{
+		return true;
+	}
+
+	return false;
+}

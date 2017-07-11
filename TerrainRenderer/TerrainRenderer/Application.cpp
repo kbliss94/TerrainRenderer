@@ -50,12 +50,16 @@ namespace TerrainRenderer
 
 		heightMapGenerator.SetIsScaleMap(false);
 
+		unsigned timeSeed = std::chrono::system_clock::now().time_since_epoch().count();
+
 		for (int i = 0; i < mNumStartUpMaps; ++i)
 		{
 			heightMapGenerator.Generate(mHeightMapFilenames[i], mHMWidth, mHMHeight);
 
-			//generate random int for the seed, set the seed
-			heightMapGenerator.SetSeed(mDistribution(mRandomSeedGenerator));
+			//using the time as a seed for the height map generator
+			heightMapGenerator.SetSeed(timeSeed);
+
+			timeSeed = std::chrono::system_clock::now().time_since_epoch().count();
 		}
 
 		//the filenames for the scaling chunks created from the big scaling map
@@ -402,6 +406,9 @@ namespace TerrainRenderer
 		m_Position->SetFrameTime(frameTime);
 
 		// Handle the input.
+
+		//toggling generation
+		keyDown = m_Input->IsGPressed();
 
 		//turning left
 		keyDown = m_Input->IsAPressed();

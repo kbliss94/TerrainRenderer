@@ -35,6 +35,7 @@ public:
 	bool IsDPressed();
 	bool IsQPressed();
 	bool IsEPressed();
+	bool IsGPressed();
 
 private:
 	bool ReadKeyboard();
