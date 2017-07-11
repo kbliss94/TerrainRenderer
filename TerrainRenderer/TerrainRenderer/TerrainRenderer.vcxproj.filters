@@ -31,6 +31,9 @@
     <Filter Include="Source Files\Shaders\Font">
       <UniqueIdentifier>{5178494d-ac85-4a09-94a7-0b1719513e22}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Shaders\Terrain">
+      <UniqueIdentifier>{e7fce8ea-431b-4788-8903-2b56b797d46b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -107,6 +110,9 @@
     </ClCompile>
     <ClCompile Include="EasyBMP.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainShader.cpp">
+      <Filter>Source Files\Shaders\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -191,6 +197,9 @@
     <ClInclude Include="EasyBMP_VariousBMPutilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TerrainShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ColorPS.hlsl">
@@ -216,6 +225,12 @@
     </FxCompile>
     <FxCompile Include="FontVS.hlsl">
       <Filter>Source Files\Shaders\Font</Filter>
+    </FxCompile>
+    <FxCompile Include="TerrainVS.hlsl">
+      <Filter>Source Files\Shaders\Terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="TerrainPS.hlsl">
+      <Filter>Source Files\Shaders\Terrain</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

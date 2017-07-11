@@ -4,7 +4,7 @@
 namespace TerrainRenderer 
 {
 	Terrain::Terrain(): 
-		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mXOffset(0), mZOffset(0)
+		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mGrassTexture(nullptr), mSlopeTexture(nullptr), mRockTexture(nullptr), mXOffset(0), mZOffset(0)
 	{
 
 	}
@@ -24,7 +24,8 @@ namespace TerrainRenderer
 
 	}
 
-	bool Terrain::Initialize(ID3D11Device* device, char* heightMapFilename, char* scalingFilename, int xOffset, int zOffset)
+	bool Terrain::Initialize(ID3D11Device* device, char* heightMapFilename, char* scalingFilename, WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename,
+		WCHAR* rockTextureFilename, int xOffset, int zOffset)
 	{
 		bool result;
 		mXOffset = xOffset;
@@ -57,6 +58,23 @@ namespace TerrainRenderer
 			ApplyScalingMap();
 		}
 
+		//////////////////////////////////////////////////////////////////for the texturing
+		result = CalculateNormals();
+		if (!result)
+		{
+			return false;
+		}
+
+		CalculateTextureCoordinates();
+
+		//loading the textures
+		result = LoadTextures(device, grassTextureFilename, slopeTextureFilename, rockTextureFilename);
+		if (!result)
+		{
+			return false;
+		}
+		//////////////////////////////////////////////////////////////////
+
 		// Initialize the vertex and index buffer that hold the geometry for the terrain.
 		result = InitializeBuffers(device);
 		if (!result)
@@ -70,13 +88,14 @@ namespace TerrainRenderer
 
 	void Terrain::Shutdown()
 	{
+		//releasing the textures
+		ReleaseTextures();
+
 		// Release the vertex and index buffer.
 		ShutdownBuffers();
 
 		// Release the height map data.
 		ShutdownHeightMap();
-
-		return;
 	}
 
 
@@ -84,8 +103,6 @@ namespace TerrainRenderer
 	{
 		// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		RenderBuffers(context);
-
-		return;
 	}
 
 	int Terrain::GetIndexCount()
@@ -154,6 +171,21 @@ namespace TerrainRenderer
 				mHeightMap[i].y *= mScalingMap[i].y;
 			}
 		}
+	}
+
+	ID3D11ShaderResourceView* Terrain::GetGrassTexture()
+	{
+		return mGrassTexture->GetTexture();
+	}
+
+	ID3D11ShaderResourceView* Terrain::GetSlopeTexture()
+	{
+		return mSlopeTexture->GetTexture();
+	}
+
+	ID3D11ShaderResourceView* Terrain::GetRockTexture()
+	{
+		return mRockTexture->GetTexture();
 	}
 
 	bool Terrain::LoadHeightMap(char* filename)
@@ -391,14 +423,274 @@ namespace TerrainRenderer
 		//	delete[] mScalingMap;
 		//	mScalingMap = 0;
 		//}
+	}
 
-		return;
+	bool Terrain::CalculateNormals()
+	{
+		int index1, index2, index3, index, count;
+		float vertex1[3], vertex2[3], vertex3[3], vector1[3], vector2[3], sum[3], length;
+		VectorType* normals;
+
+		// Create a temporary array to hold the un-normalized normal vectors.
+		normals = new VectorType[(mTerrainHeight - 1) * (mTerrainWidth - 1)];
+		if (!normals)
+		{
+			return false;
+		}
+
+		// Go through all the faces in the mesh and calculate their normals.
+		for (int j = 0; j < (mTerrainHeight - 1); j++)
+		{
+			for (int i = 0; i < (mTerrainWidth - 1); i++)
+			{
+				index1 = (j * mTerrainHeight) + i;
+				index2 = (j * mTerrainHeight) + (i + 1);
+				index3 = ((j + 1) * mTerrainHeight) + i;
+
+				// Get three vertices from the face.
+				vertex1[0] = mHeightMap[index1].x;
+				vertex1[1] = mHeightMap[index1].y;
+				vertex1[2] = mHeightMap[index1].z;
+
+				vertex2[0] = mHeightMap[index2].x;
+				vertex2[1] = mHeightMap[index2].y;
+				vertex2[2] = mHeightMap[index2].z;
+
+				vertex3[0] = mHeightMap[index3].x;
+				vertex3[1] = mHeightMap[index3].y;
+				vertex3[2] = mHeightMap[index3].z;
+
+				// Calculate the two vectors for this face.
+				vector1[0] = vertex1[0] - vertex3[0];
+				vector1[1] = vertex1[1] - vertex3[1];
+				vector1[2] = vertex1[2] - vertex3[2];
+				vector2[0] = vertex3[0] - vertex2[0];
+				vector2[1] = vertex3[1] - vertex2[1];
+				vector2[2] = vertex3[2] - vertex2[2];
+
+				index = (j * (mTerrainHeight - 1)) + i;
+
+				// Calculate the cross product of those two vectors to get the un-normalized value for this face normal.
+				normals[index].x = (vector1[1] * vector2[2]) - (vector1[2] * vector2[1]);
+				normals[index].y = (vector1[2] * vector2[0]) - (vector1[0] * vector2[2]);
+				normals[index].z = (vector1[0] * vector2[1]) - (vector1[1] * vector2[0]);
+			}
+		}
+
+		// Now go through all the vertices and take an average of each face normal 	
+		// that the vertex touches to get the averaged normal for that vertex.
+		for (int j = 0; j < mTerrainHeight; j++)
+		{
+			for (int i = 0; i < mTerrainWidth; i++)
+			{
+				// Initialize the sum.
+				sum[0] = 0.0f;
+				sum[1] = 0.0f;
+				sum[2] = 0.0f;
+
+				// Initialize the count.
+				count = 0;
+
+				// Bottom left face.
+				if (((i - 1) >= 0) && ((j - 1) >= 0))
+				{
+					index = ((j - 1) * (mTerrainHeight - 1)) + (i - 1);
+
+					sum[0] += normals[index].x;
+					sum[1] += normals[index].y;
+					sum[2] += normals[index].z;
+					count++;
+				}
+
+				// Bottom right face.
+				if ((i < (mTerrainWidth - 1)) && ((j - 1) >= 0))
+				{
+					index = ((j - 1) * (mTerrainHeight - 1)) + i;
+
+					sum[0] += normals[index].x;
+					sum[1] += normals[index].y;
+					sum[2] += normals[index].z;
+					count++;
+				}
+
+				// Upper left face.
+				if (((i - 1) >= 0) && (j < (mTerrainHeight - 1)))
+				{
+					index = (j * (mTerrainHeight - 1)) + (i - 1);
+
+					sum[0] += normals[index].x;
+					sum[1] += normals[index].y;
+					sum[2] += normals[index].z;
+					count++;
+				}
+
+				// Upper right face.
+				if ((i < (mTerrainWidth - 1)) && (j < (mTerrainHeight - 1)))
+				{
+					index = (j * (mTerrainHeight - 1)) + i;
+
+					sum[0] += normals[index].x;
+					sum[1] += normals[index].y;
+					sum[2] += normals[index].z;
+					count++;
+				}
+
+				// Take the average of the faces touching this vertex.
+				sum[0] = (sum[0] / (float)count);
+				sum[1] = (sum[1] / (float)count);
+				sum[2] = (sum[2] / (float)count);
+
+				// Calculate the length of this normal.
+				length = sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2]));
+
+				// Get an index to the vertex location in the height map array.
+				index = (j * mTerrainHeight) + i;
+
+				// Normalize the final shared normal for this vertex and store it in the height map array.
+				mHeightMap[index].nx = (sum[0] / length);
+				mHeightMap[index].ny = (sum[1] / length);
+				mHeightMap[index].nz = (sum[2] / length);
+			}
+		}
+
+		// Release the temporary normals.
+		delete[] normals;
+		normals = 0;
+
+		return true;
+	}
+
+	void Terrain::CalculateTextureCoordinates()
+	{
+		int incrementCount, tuCount, tvCount;
+		float incrementValue, tuCoordinate, tvCoordinate;
+
+
+		// Calculate how much to increment the texture coordinates by.
+		incrementValue = (float)TEXTURE_REPEAT / (float)mTerrainWidth;
+
+		// Calculate how many times to repeat the texture.
+		incrementCount = mTerrainWidth / TEXTURE_REPEAT;
+
+		// Initialize the tu and tv coordinate values.
+		tuCoordinate = 0.0f;
+		tvCoordinate = 1.0f;
+
+		// Initialize the tu and tv coordinate indexes.
+		tuCount = 0;
+		tvCount = 0;
+
+		// Loop through the entire height map and calculate the tu and tv texture coordinates for each vertex.
+		for (int j = 0; j < mTerrainHeight; j++)
+		{
+			for (int i = 0; i < mTerrainWidth; i++)
+			{
+				// Store the texture coordinate in the height map.
+				mHeightMap[(mTerrainHeight * j) + i].tu = tuCoordinate;
+				mHeightMap[(mTerrainHeight * j) + i].tv = tvCoordinate;
+
+				// Increment the tu texture coordinate by the increment value and increment the index by one.
+				tuCoordinate += incrementValue;
+				tuCount++;
+
+				// Check if at the far right end of the texture and if so then start at the beginning again.
+				if (tuCount == incrementCount)
+				{
+					tuCoordinate = 0.0f;
+					tuCount = 0;
+				}
+			}
+
+			// Increment the tv texture coordinate by the increment value and increment the index by one.
+			tvCoordinate -= incrementValue;
+			tvCount++;
+
+			// Check if at the top of the texture and if so then start at the bottom again.
+			if (tvCount == incrementCount)
+			{
+				tvCoordinate = 1.0f;
+				tvCount = 0;
+			}
+		}
+	}
+
+	bool Terrain::LoadTextures(ID3D11Device* device, WCHAR* grassFilename, WCHAR* slopeFilename, WCHAR* rockFilename)
+	{
+		bool result;
+
+
+		// Create the grass texture object.
+		mGrassTexture = new Texture;
+		if (!mGrassTexture)
+		{
+			return false;
+		}
+
+		// Initialize the grass texture object.
+		result = mGrassTexture->Initialize(device, grassFilename);
+		if (!result)
+		{
+			return false;
+		}
+
+		// Create the slope texture object.
+		mSlopeTexture = new Texture;
+		if (!mSlopeTexture)
+		{
+			return false;
+		}
+
+		// Initialize the slope texture object.
+		result = mSlopeTexture->Initialize(device, slopeFilename);
+		if (!result)
+		{
+			return false;
+		}
+
+		// Create the rock texture object.
+		mRockTexture = new Texture;
+		if (!mRockTexture)
+		{
+			return false;
+		}
+
+		// Initialize the rock texture object.
+		result = mRockTexture->Initialize(device, rockFilename);
+		if (!result)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	void Terrain::ReleaseTextures()
+	{
+		// Release the texture objects.
+		if (mGrassTexture)
+		{
+			mGrassTexture->Shutdown();
+			delete mGrassTexture;
+			mGrassTexture = nullptr;
+		}
+
+		if (mSlopeTexture)
+		{
+			mSlopeTexture->Shutdown();
+			delete mSlopeTexture;
+			mSlopeTexture = nullptr;
+		}
+
+		if (mRockTexture)
+		{
+			mRockTexture->Shutdown();
+			delete mRockTexture;
+			mRockTexture = nullptr;
+		}
 	}
 
 	bool Terrain::InitializeBuffers(ID3D11Device* device)
 	{
-		float scale;
-
 		mDevice = device;
 
 		VertexType* vertices;
@@ -408,9 +700,11 @@ namespace TerrainRenderer
 		D3D11_SUBRESOURCE_DATA vertexData, indexData;
 		HRESULT result;
 		int index1, index2, index3, index4;
+		float tu, tv;
 
 		// Calculate the number of vertices in the terrain mesh.
-		mVertexCount = (mTerrainWidth - 1) * (mTerrainHeight - 1) * 12;
+		//mVertexCount = (mTerrainWidth - 1) * (mTerrainHeight - 1) * 12;
+		mVertexCount = (mTerrainWidth - 1) * (mTerrainHeight - 1) * 6;
 
 		// Set the index count to the same as the vertex count.
 		mIndexCount = mVertexCount;
@@ -443,76 +737,126 @@ namespace TerrainRenderer
 				index4 = (mTerrainHeight * (j + 1)) + (i + 1);  // Upper right.
 
 				// Upper left.
+				tv = mHeightMap[index3].tv;
+
+				//modify the texture coordinates to cover the top edge
+				if (tv == 1.0f)
+				{
+					tv = 0.0f;
+				}
+
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				vertices[index].texture = D3DXVECTOR2(mHeightMap[index3].tu, tv);
+				vertices[index].normal = D3DXVECTOR3(mHeightMap[index3].nx, mHeightMap[index3].ny, mHeightMap[index3].nz);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
+				tu = mHeightMap[index4].tu;
+				tv = mHeightMap[index4].tv;
+
+				// Modify the texture coordinates to cover the top and right edge.
+				if (tu == 0.0f) 
+				{ 
+					tu = 1.0f; 
+				}
+
+				if (tv == 1.0f) 
+				{ 
+					tv = 0.0f; 
+				}
+
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				vertices[index].texture = D3DXVECTOR2(tu, tv);
+				vertices[index].normal = D3DXVECTOR3(mHeightMap[index4].nx, mHeightMap[index4].ny, mHeightMap[index4].nz);
 				indices[index] = index;
 				index++;
 
-				// Upper right.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				//// Upper right.
+				//vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
+				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				//indices[index] = index;
+				//index++;
+
+				// Bottom left.
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
+				vertices[index].texture = D3DXVECTOR2(mHeightMap[index1].tu, mHeightMap[index1].tv);
+				vertices[index].normal = D3DXVECTOR3(mHeightMap[index1].nx, mHeightMap[index1].ny, mHeightMap[index1].nz);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				vertices[index].texture = D3DXVECTOR2(mHeightMap[index1].tu, mHeightMap[index1].tv);
+				vertices[index].normal = D3DXVECTOR3(mHeightMap[index1].nx, mHeightMap[index1].ny, mHeightMap[index1].nz);
 				indices[index] = index;
 				index++;
 
-				// Bottom left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				indices[index] = index;
-				index++;
+				//// Upper left.
+				//vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
+				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				//indices[index] = index;
+				//index++;
 
-				// Upper left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				indices[index] = index;
-				index++;
-
-				// Bottom left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				indices[index] = index;
-				index++;
+				//// Bottom left.
+				//vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
+				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				//indices[index] = index;
+				//index++;
 
 				// Upper right.
+				tu = mHeightMap[index4].tu;
+				tv = mHeightMap[index4].tv;
+
+				// Modify the texture coordinates to cover the top and right edge.
+				if (tu == 0.0f) 
+				{ 
+					tu = 1.0f; 
+				}
+
+				if (tv == 1.0f) 
+				{ 
+					tv = 0.0f; 
+				}
+
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				vertices[index].texture = D3DXVECTOR2(tu, tv);
+				vertices[index].normal = D3DXVECTOR3(mHeightMap[index4].nx, mHeightMap[index4].ny, mHeightMap[index4].nz);
 				indices[index] = index;
 				index++;
 
-				// Upper right.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				indices[index] = index;
-				index++;
+				//// Upper right.
+				//vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
+				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				//indices[index] = index;
+				//index++;
 
 				// Bottom right.
+				tu = mHeightMap[index2].tu;
+
+				// Modify the texture coordinates to cover the right edge.
+				if (tu == 0.0f) 
+				{ 
+					tu = 1.0f; 
+				}
+
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				vertices[index].texture = D3DXVECTOR2(tu, mHeightMap[index2].tv);
+				vertices[index].normal = D3DXVECTOR3(mHeightMap[index2].nx, mHeightMap[index2].ny, mHeightMap[index2].nz);
 				indices[index] = index;
 				index++;
 
-				// Bottom right.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				indices[index] = index;
-				index++;
+				//// Bottom right.
+				//vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
+				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				//indices[index] = index;
+				//index++;
 
-				// Bottom left.
-				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				indices[index] = index;
-				index++;
+				//// Bottom left.
+				//vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
+				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
+				//indices[index] = index;
+				//index++;
 			}
 		}
 
@@ -592,7 +936,6 @@ namespace TerrainRenderer
 		unsigned int stride;
 		unsigned int offset;
 
-
 		// Set vertex buffer stride and offset.
 		stride = sizeof(VertexType);
 		offset = 0;
@@ -605,7 +948,5 @@ namespace TerrainRenderer
 
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case a line list.
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-		return;
 	}
 }

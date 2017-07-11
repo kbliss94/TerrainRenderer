@@ -16,7 +16,7 @@ const bool SCALING_ENABLED = true;
 #include "Camera.h"
 #include "TerrainManager.h"
 
-#include "ColorShader.h"
+//#include "ColorShader.h"
 #include "Timer.h"
 #include "Position.h"
 #include "FPS.h"
@@ -24,6 +24,8 @@ const bool SCALING_ENABLED = true;
 #include "FontShader.h"
 #include "Text.h"
 #include "HeightMap.h"
+#include "TerrainShader.h"
+#include "Light.h"
 #include "noiseutils.h"
 
 #include <random>
@@ -48,17 +50,19 @@ namespace TerrainRenderer
 		bool RenderGraphics();
 
 	private:
-		Input* m_Input;
-		DirectX3D* m_Direct3D;
-		Camera* m_Camera;
-		ColorShader* m_ColorShader;
-		Timer* m_Timer;
-		Position* m_Position;
-		FPS* m_FPS;
-		CPU* m_CPU;
-		FontShader* m_FontShader;
-		Text* m_Text;
+		Input* mInput;
+		DirectX3D* mDirect3D;
+		Camera* mCamera;
+		//ColorShader* m_ColorShader;
+		Timer* mTimer;
+		Position* mPosition;
+		FPS* mFPS;
+		CPU* mCPU;
+		FontShader* mFontShader;
+		Text* mText;
 		TerrainManager* mTerrainManager;
+		TerrainShader* mTerrainShader;
+		Light* mLight;
 
 		const int mNumStartUpMaps = 9;
 		const int mHMWidth = 64;
@@ -67,6 +71,10 @@ namespace TerrainRenderer
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;
 		char* mLargeScalingFilename;
+
+		WCHAR* mGrassFilename = L"..//TerrainRenderer//data//grass.dds";
+		WCHAR* mSlopeFilename = L"..//TerrainRenderer//data//slope.dds";
+		WCHAR* mRockFilename = L"..//TerrainRenderer//data//rock.dds";
 	};
 }
 

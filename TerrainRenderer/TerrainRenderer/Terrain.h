@@ -1,6 +1,11 @@
 #ifndef _TERRAIN_
 #define _TERRAIN_
 
+//globals
+const int TEXTURE_REPEAT = 32;
+
+#include "Texture.h"
+
 #include <d3d11.h>
 #include <d3dx10math.h>
 #include <stdio.h>
@@ -20,17 +25,20 @@ namespace TerrainRenderer
 		struct VertexType
 		{
 			D3DXVECTOR3 position;
-			D3DXVECTOR4 color;
+			D3DXVECTOR2 texture;
+			D3DXVECTOR3 normal;
 		};
 
 		struct HeightMapData
 		{
 			float x, y, z;
+			float tu, tv;
+			float nx, ny, nz;
 
 			HeightMapData() {};
 
-			HeightMapData(float ix, float iy, float iz):
-				x(ix), y(iy), z(iz)
+			HeightMapData(float ix, float iy, float iz, float itu, float itv, float inx, float iny, float inz):
+				x(ix), y(iy), z(iz), tu(itu), tv(itv), nx(inx), ny(iny), nz(inz)
 			{
 				
 			};
@@ -38,8 +46,18 @@ namespace TerrainRenderer
 			template<class Archive>
 			void serialize(Archive& archive)
 			{
-				archive(x, y, z);
+				archive(x, y, z, tu, tv, nx, ny, nz);
 			};
+		};
+
+		struct ScalingMapData
+		{
+			float x, y, z;
+		};
+
+		struct VectorType
+		{
+			float x, y, z;
 		};
 
 	public:
@@ -55,7 +73,8 @@ namespace TerrainRenderer
 		//!Destructor
 		~Terrain();
 
-		bool Initialize(ID3D11Device* device, char* heightMapFilename, char* scalingFilename, int xOffset = 0, int zOffset = 0);
+		bool Initialize(ID3D11Device* device, char* heightMapFilename, char* scalingFilename, WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename,
+			WCHAR* rockTextureFilename, int xOffset = 0, int zOffset = 0);
 		void Shutdown();
 		void Render(ID3D11DeviceContext* context);
 
@@ -87,12 +106,21 @@ namespace TerrainRenderer
 			archive(mHeightMap, mGridPositionX, mGridPositionY);
 		};
 
+		ID3D11ShaderResourceView* GetGrassTexture();
+		ID3D11ShaderResourceView* GetSlopeTexture();
+		ID3D11ShaderResourceView* GetRockTexture();
+
 	private:
 		bool LoadHeightMap(char* filename);
 		bool LoadScalingMap(char* filename);
 		void NormalizeHeightMap();
 		void NormalizeScalingMap();
 		void ShutdownHeightMap();
+
+		bool CalculateNormals();
+		void CalculateTextureCoordinates();
+		bool LoadTextures(ID3D11Device* device, WCHAR* grassFilename, WCHAR* slopeFilename, WCHAR* rockFilename);
+		void ReleaseTextures();
 
 		bool InitializeBuffers(ID3D11Device* device);
 		void ShutdownBuffers();
@@ -109,7 +137,7 @@ namespace TerrainRenderer
 		ID3D11Device* mDevice;
 		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
 		vector<HeightMapData> mHeightMap;
-		vector<HeightMapData> mScalingMap;
+		vector<ScalingMapData> mScalingMap;
 		char* mHeightMapFilename;
 		char* mHeightScalingMap;
 
@@ -117,6 +145,8 @@ namespace TerrainRenderer
 		const float mVertexColorG = 1.0f;
 		const float mVertexColorB = 1.0f;
 		const float mVertexColorAlpha = 1.0f;
+
+		Texture* mGrassTexture, *mSlopeTexture, *mRockTexture;
 
 		friend class cereal::access;
 	};

@@ -4,17 +4,19 @@ namespace TerrainRenderer
 {
 	Application::Application()
 	{
-		m_Input = 0;
-		m_Direct3D = 0;
-		m_Camera = 0;
-		m_ColorShader = 0;
-		m_Timer = 0;
-		m_Position = 0;
-		m_FPS = 0;
-		m_CPU = 0;
-		m_FontShader = 0;
-		m_Text = 0;
+		mInput = 0;
+		mDirect3D = 0;
+		mCamera = 0;
+		//m_ColorShader = 0;
+		mTimer = 0;
+		mPosition = 0;
+		mFPS = 0;
+		mCPU = 0;
+		mFontShader = 0;
+		mText = 0;
 		mTerrainManager = 0;
+		mTerrainShader = 0;
+		mLight = 0;
 	}
 
 	Application::Application(const Application& other)
@@ -78,14 +80,14 @@ namespace TerrainRenderer
 		heightMapGenerator.Generate(mLargeScalingFilename, (mHMWidth * 3), (mHMHeight * 3));
 
 		// Create the input object.  The input object will be used to handle reading the keyboard and mouse input from the user.
-		m_Input = new Input;
-		if (!m_Input)
+		mInput = new Input;
+		if (!mInput)
 		{
 			return false;
 		}
 
 		// Initialize the input object.
-		result = m_Input->Initialize(hinstance, hwnd, screenWidth, screenHeight);
+		result = mInput->Initialize(hinstance, hwnd, screenWidth, screenHeight);
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize the input object.", L"Error", MB_OK);
@@ -93,14 +95,14 @@ namespace TerrainRenderer
 		}
 
 		// Create the Direct3D object.
-		m_Direct3D = new DirectX3D;
-		if (!m_Direct3D)
+		mDirect3D = new DirectX3D;
+		if (!mDirect3D)
 		{
 			return false;
 		}
 
 		// Initialize the Direct3D object.
-		result = m_Direct3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
+		result = mDirect3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize DirectX 11.", L"Error", MB_OK);
@@ -108,16 +110,16 @@ namespace TerrainRenderer
 		}
 
 		// Create the camera object.
-		m_Camera = new Camera;
-		if (!m_Camera)
+		mCamera = new Camera;
+		if (!mCamera)
 		{
 			return false;
 		}
 
 		// Initialize a base view matrix with the camera for 2D user interface rendering.
-		m_Camera->SetPosition(0.0f, 0.0f, -1.0f);
-		m_Camera->Render();
-		m_Camera->GetViewMatrix(baseViewMatrix);
+		mCamera->SetPosition(0.0f, 0.0f, -1.0f);
+		mCamera->Render();
+		mCamera->GetViewMatrix(baseViewMatrix);
 
 		// Set the initial position of the camera.
 		//cameraX = 50.0f;
@@ -128,7 +130,7 @@ namespace TerrainRenderer
 		cameraY = 90.0f;
 		cameraZ = 94.0f;
 
-		m_Camera->SetPosition(cameraX, cameraY, cameraZ);
+		mCamera->SetPosition(cameraX, cameraY, cameraZ);
 
 		//setting up the terrain manager
 		mTerrainManager = new TerrainManager;
@@ -137,37 +139,38 @@ namespace TerrainRenderer
 			return false;
 		}
 
-		result = mTerrainManager->Initialize(m_Direct3D->GetDevice(), &mHeightMapFilenames, &mScalingFilenames, mLargeScalingFilename);
+		result = mTerrainManager->Initialize(mDirect3D->GetDevice(), &mHeightMapFilenames, &mScalingFilenames, mLargeScalingFilename, 
+			mGrassFilename, mSlopeFilename, mRockFilename);
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize the terrain manager object.", L"Error", MB_OK);
 			return false;
 		}
 
-		// Create the color shader object.
-		m_ColorShader = new ColorShader;
-		if (!m_ColorShader)
-		{
-			return false;
-		}
+		//// Create the color shader object.
+		//m_ColorShader = new ColorShader;
+		//if (!m_ColorShader)
+		//{
+		//	return false;
+		//}
 
-		// Initialize the color shader object.
-		result = m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd);
-		if (!result)
-		{
-			MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
-			return false;
-		}
+		//// Initialize the color shader object.
+		//result = m_ColorShader->Initialize(mDirect3D->GetDevice(), hwnd);
+		//if (!result)
+		//{
+		//	MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
+		//	return false;
+		//}
 
 		// Create the timer object.
-		m_Timer = new Timer;
-		if (!m_Timer)
+		mTimer = new Timer;
+		if (!mTimer)
 		{
 			return false;
 		}
 
 		// Initialize the timer object.
-		result = m_Timer->Initialize();
+		result = mTimer->Initialize();
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize the timer object.", L"Error", MB_OK);
@@ -175,44 +178,44 @@ namespace TerrainRenderer
 		}
 
 		// Create the position object.
-		m_Position = new Position;
-		if (!m_Position)
+		mPosition = new Position;
+		if (!mPosition)
 		{
 			return false;
 		}
 
 		// Set the initial position of the viewer to the same as the initial camera position.
-		m_Position->SetPosition(cameraX, cameraY, cameraZ);
+		mPosition->SetPosition(cameraX, cameraY, cameraZ);
 
 		// Create the fps object.
-		m_FPS = new FPS;
-		if (!m_FPS)
+		mFPS = new FPS;
+		if (!mFPS)
 		{
 			return false;
 		}
 
 		// Initialize the fps object.
-		m_FPS->Initialize();
+		mFPS->Initialize();
 
 		// Create the cpu object.
-		m_CPU = new CPU;
-		if (!m_CPU)
+		mCPU = new CPU;
+		if (!mCPU)
 		{
 			return false;
 		}
 
 		// Initialize the cpu object.
-		m_CPU->Initialize();
+		mCPU->Initialize();
 
 		// Create the font shader object.
-		m_FontShader = new FontShader;
-		if (!m_FontShader)
+		mFontShader = new FontShader;
+		if (!mFontShader)
 		{
 			return false;
 		}
 
 		// Initialize the font shader object.
-		result = m_FontShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+		result = mFontShader->Initialize(mDirect3D->GetDevice(), hwnd);
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize the font shader object.", L"Error", MB_OK);
@@ -220,14 +223,14 @@ namespace TerrainRenderer
 		}
 
 		// Create the text object.
-		m_Text = new Text;
-		if (!m_Text)
+		mText = new Text;
+		if (!mText)
 		{
 			return false;
 		}
 
 		// Initialize the text object.
-		result = m_Text->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseViewMatrix);
+		result = mText->Initialize(mDirect3D->GetDevice(), mDirect3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseViewMatrix);
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not initialize the text object.", L"Error", MB_OK);
@@ -235,15 +238,42 @@ namespace TerrainRenderer
 		}
 
 		// Retrieve the video card information.
-		m_Direct3D->GetVideoCardInfo(videoCard, videoMemory);
+		mDirect3D->GetVideoCardInfo(videoCard, videoMemory);
 
 		// Set the video card information in the text object.
-		result = m_Text->SetVideoCardInfo(videoCard, videoMemory, m_Direct3D->GetDeviceContext());
+		result = mText->SetVideoCardInfo(videoCard, videoMemory, mDirect3D->GetDeviceContext());
 		if (!result)
 		{
 			MessageBox(hwnd, L"Could not set video card info in the text object.", L"Error", MB_OK);
 			return false;
 		}
+
+		//create the terrain shader object
+		mTerrainShader = new TerrainShader;
+		if (!mTerrainShader)
+		{
+			return false;
+		}
+
+		//initialize the terrain shader object
+		result = mTerrainShader->Initialize(mDirect3D->GetDevice(), hwnd);
+		if (!result)
+		{
+			MessageBox(hwnd, L"Could not initialize the terrain shader object.", L"Error", MB_OK);
+			return false;
+		}
+
+		//create the light object
+		mLight = new Light;
+		if (!mLight)
+		{
+			return false;
+		}
+
+		// Initialize the light object.
+		mLight->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
+		mLight->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+		mLight->SetDirection(-0.5f, -1.0f, 0.0f);
 
 		return true;
 	}
@@ -251,58 +281,73 @@ namespace TerrainRenderer
 
 	void Application::Shutdown()
 	{
-		// Release the text object.
-		if (m_Text)
+		// Release the light object.
+		if (mLight)
 		{
-			m_Text->Shutdown();
-			delete m_Text;
-			m_Text = 0;
+			delete mLight;
+			mLight = 0;
+		}
+
+		// Release the terrain shader object.
+		if (mTerrainShader)
+		{
+			mTerrainShader->Shutdown();
+			delete mTerrainShader;
+			mTerrainShader = 0;
+		}
+
+		// Release the text object.
+		if (mText)
+		{
+			mText->Shutdown();
+			delete mText;
+			mText = 0;
 		}
 
 		// Release the font shader object.
-		if (m_FontShader)
+		if (mFontShader)
 		{
-			m_FontShader->Shutdown();
-			delete m_FontShader;
-			m_FontShader = 0;
+			mFontShader->Shutdown();
+			delete mFontShader;
+			mFontShader = 0;
 		}
 
 		// Release the cpu object.
-		if (m_CPU)
+		if (mCPU)
 		{
-			m_CPU->Shutdown();
-			delete m_CPU;
-			m_CPU = 0;
+			mCPU->Shutdown();
+			delete mCPU;
+			mCPU = 0;
 		}
 
 		// Release the fps object.
-		if (m_FPS)
+		if (mFPS)
 		{
-			delete m_FPS;
-			m_FPS = 0;
+			delete mFPS;
+			mFPS = 0;
 		}
 
 		// Release the position object.
-		if (m_Position)
+		if (mPosition)
 		{
-			delete m_Position;
-			m_Position = 0;
+			delete mPosition;
+			mPosition = 0;
 		}
 
 		// Release the timer object.
-		if (m_Timer)
+		if (mTimer)
 		{
-			delete m_Timer;
-			m_Timer = 0;
+			delete mTimer;
+			mTimer = 0;
 		}
 
-		// Release the color shader object.
-		if (m_ColorShader)
-		{
-			m_ColorShader->Shutdown();
-			delete m_ColorShader;
-			m_ColorShader = 0;
-		}
+		//// Release the color shader object.
+		//if (m_ColorShader)
+		//{
+		//	m_ColorShader->Shutdown();
+		//	delete m_ColorShader;
+		//	m_ColorShader = 0;
+		//}
 
 		//release the terrain manager object
 		if (mTerrainManager)
@@ -313,29 +358,27 @@ namespace TerrainRenderer
 		}
 
 		// Release the camera object.
-		if (m_Camera)
+		if (mCamera)
 		{
-			delete m_Camera;
-			m_Camera = 0;
+			delete mCamera;
+			mCamera = 0;
 		}
 
 		// Release the Direct3D object.
-		if (m_Direct3D)
+		if (mDirect3D)
 		{
-			m_Direct3D->Shutdown();
-			delete m_Direct3D;
-			m_Direct3D = 0;
+			mDirect3D->Shutdown();
+			delete mDirect3D;
+			mDirect3D = 0;
 		}
 
 		// Release the input object.
-		if (m_Input)
+		if (mInput)
 		{
-			m_Input->Shutdown();
-			delete m_Input;
-			m_Input = 0;
+			mInput->Shutdown();
+			delete mInput;
+			mInput = 0;
 		}
-
-		return;
 	}
 
 
@@ -345,39 +388,39 @@ namespace TerrainRenderer
 
 
 		// Read the user input.
-		result = m_Input->Frame();
+		result = mInput->Frame();
 		if (!result)
 		{
 			return false;
 		}
 
 		// Check if the user pressed escape and wants to exit the application.
-		if (m_Input->IsEscapePressed() == true)
+		if (mInput->IsEscapePressed() == true)
 		{
 			return false;
 		}
 
 		// Update the system stats.
-		m_Timer->Frame();
-		m_FPS->Frame();
-		m_CPU->Frame();
+		mTimer->Frame();
+		mFPS->Frame();
+		mCPU->Frame();
 
 		// Update the FPS value in the text object.
-		result = m_Text->SetFps(m_FPS->GetFPS(), m_Direct3D->GetDeviceContext());
+		result = mText->SetFps(mFPS->GetFPS(), mDirect3D->GetDeviceContext());
 		if (!result)
 		{
 			return false;
 		}
 
 		// Update the CPU usage value in the text object.
-		result = m_Text->SetCpu(m_CPU->GetCPUPercentage(), m_Direct3D->GetDeviceContext());
+		result = mText->SetCpu(mCPU->GetCPUPercentage(), mDirect3D->GetDeviceContext());
 		if (!result)
 		{
 			return false;
 		}
 
 		// Do the frame input processing.
-		result = HandleInput(m_Timer->GetTime());
+		result = HandleInput(mTimer->GetTime());
 		if (!result)
 		{
 			return false;
@@ -401,72 +444,72 @@ namespace TerrainRenderer
 
 
 		// Set the frame time for calculating the updated position.
-		m_Position->SetFrameTime(frameTime);
+		mPosition->SetFrameTime(frameTime);
 
 		// Handle the input.
 
 		//toggling generation
-		keyDown = m_Input->IsGPressed();
+		keyDown = mInput->IsGPressed();
 
 		//turning left
-		keyDown = m_Input->IsAPressed();
-		m_Position->TurnLeft(keyDown);
+		keyDown = mInput->IsAPressed();
+		mPosition->TurnLeft(keyDown);
 
 		//turning right
-		keyDown = m_Input->IsDPressed();
-		m_Position->TurnRight(keyDown);
+		keyDown = mInput->IsDPressed();
+		mPosition->TurnRight(keyDown);
 
 		//moving forward
-		keyDown = m_Input->IsWPressed();
-		m_Position->MoveForward(keyDown);
+		keyDown = mInput->IsWPressed();
+		mPosition->MoveForward(keyDown);
 
 		if (keyDown && GENERATION_ENABLED)
 		{
-			mTerrainManager->GenerateChunks(m_Position);
+			mTerrainManager->GenerateChunks(mPosition);
 		}
 
 		//moving backward
-		keyDown = m_Input->IsSPressed();
-		m_Position->MoveBackward(keyDown);
+		keyDown = mInput->IsSPressed();
+		mPosition->MoveBackward(keyDown);
 
 		if (keyDown && GENERATION_ENABLED)
 		{
-			mTerrainManager->GenerateChunks(m_Position);
+			mTerrainManager->GenerateChunks(mPosition);
 		}
 
 		//moving up
-		keyDown = m_Input->IsQPressed();
-		m_Position->MoveUpward(keyDown);
+		keyDown = mInput->IsQPressed();
+		mPosition->MoveUpward(keyDown);
 
 		//moving down
-		keyDown = m_Input->IsEPressed();
-		m_Position->MoveDownward(keyDown);
+		keyDown = mInput->IsEPressed();
+		mPosition->MoveDownward(keyDown);
 
 		//looking up
-		keyDown = m_Input->IsPgUpPressed();
-		m_Position->LookUpward(keyDown);
+		keyDown = mInput->IsPgUpPressed();
+		mPosition->LookUpward(keyDown);
 
 		//looking down
-		keyDown = m_Input->IsPgDownPressed();
-		m_Position->LookDownward(keyDown);
+		keyDown = mInput->IsPgDownPressed();
+		mPosition->LookDownward(keyDown);
 
 		// Get the view point position/rotation.
-		m_Position->GetPosition(posX, posY, posZ);
-		m_Position->GetRotation(rotX, rotY, rotZ);
+		mPosition->GetPosition(posX, posY, posZ);
+		mPosition->GetRotation(rotX, rotY, rotZ);
 
 		// Set the position of the camera.
-		m_Camera->SetPosition(posX, posY, posZ);
-		m_Camera->SetRotation(rotX, rotY, rotZ);
+		mCamera->SetPosition(posX, posY, posZ);
+		mCamera->SetRotation(rotX, rotY, rotZ);
 
 		// Update the position values in the text object.
-		result = m_Text->SetCameraPosition(posX, posY, posZ, m_Direct3D->GetDeviceContext());
+		result = mText->SetCameraPosition(posX, posY, posZ, mDirect3D->GetDeviceContext());
 		if (!result)
 		{
 			return false;
 		}
 
 		// Update the rotation values in the text object.
-		result = m_Text->SetCameraRotation(rotX, rotY, rotZ, m_Direct3D->GetDeviceContext());
+		result = mText->SetCameraRotation(rotX, rotY, rotZ, mDirect3D->GetDeviceContext());
 		if (!result)
 		{
 			return false;
@@ -483,41 +526,42 @@ namespace TerrainRenderer
 
 
 		// Clear the scene.
-		m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+		mDirect3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
 		// Generate the view matrix based on the camera's position.
-		m_Camera->Render();
+		mCamera->Render();
 
 		// Get the world, view, projection, and orthographic matrices from the camera and Direct3D objects.
-		m_Direct3D->GetWorldMatrix(worldMatrix);
-		m_Camera->GetViewMatrix(viewMatrix);
-		m_Direct3D->GetProjectionMatrix(projectionMatrix);
-		m_Direct3D->GetOrthoMatrix(orthoMatrix);
+		mDirect3D->GetWorldMatrix(worldMatrix);
+		mCamera->GetViewMatrix(viewMatrix);
+		mDirect3D->GetProjectionMatrix(projectionMatrix);
+		mDirect3D->GetOrthoMatrix(orthoMatrix);
 
 		//rendering the terrain buffers
-		mTerrainManager->Render(m_Direct3D->GetDeviceContext(), m_ColorShader, worldMatrix, viewMatrix, projectionMatrix);
+		mTerrainManager->Render(mDirect3D->GetDeviceContext(), mTerrainShader, worldMatrix, viewMatrix, projectionMatrix,
+			mLight->GetAmbientColor(), mLight->GetDiffuseColor(), mLight->GetDirection());
 
 		// Turn off the Z buffer to begin all 2D rendering.
-		m_Direct3D->TurnZBufferOff();
+		mDirect3D->TurnZBufferOff();
 
 		// Turn on the alpha blending before rendering the text.
-		m_Direct3D->TurnOnAlphaBlending();
+		mDirect3D->TurnOnAlphaBlending();
 
 		// Render the text user interface elements.
-		result = m_Text->Render(m_Direct3D->GetDeviceContext(), m_FontShader, worldMatrix, orthoMatrix);
+		result = mText->Render(mDirect3D->GetDeviceContext(), mFontShader, worldMatrix, orthoMatrix);
 		if (!result)
 		{
 			return false;
 		}
 
 		// Turn off alpha blending after rendering the text.
-		m_Direct3D->TurnOffAlphaBlending();
+		mDirect3D->TurnOffAlphaBlending();
 
 		// Turn the Z buffer back on now that all 2D rendering has completed.
-		m_Direct3D->TurnZBufferOn();
+		mDirect3D->TurnZBufferOn();
 
 		// Present the rendered scene to the screen.
-		m_Direct3D->EndScene();
+		mDirect3D->EndScene();
 
 		return true;
 	}

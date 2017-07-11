@@ -22,13 +22,16 @@ namespace TerrainRenderer
 		//!Destructor
 		~Light();
 
+		void SetAmbientColor(float red, float green, float blue, float alpha);
 		void SetDiffuseColor(float red, float green, float blue, float alpha);
 		void SetDirection(float x, float y, float z);
 
+		D3DXVECTOR4 GetAmbientColor();
 		D3DXVECTOR4 GetDiffuseColor();
 		D3DXVECTOR3 GetDirection();
 
 	private:
+		D3DXVECTOR4 mAmbientColor;
 		D3DXVECTOR4 mDiffuseColor;
 		D3DXVECTOR3 mDirection;
 	};

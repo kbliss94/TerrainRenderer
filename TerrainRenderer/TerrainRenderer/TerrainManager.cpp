@@ -87,7 +87,8 @@ namespace TerrainRenderer
 
 	}
 
-	bool TerrainManager::Initialize(ID3D11Device* device, vector<char*>* heightMapFilenames, vector<char*>* scalingFilenames, char* largeScalingFilename)
+	bool TerrainManager::Initialize(ID3D11Device* device, vector<char*>* heightMapFilenames, vector<char*>* scalingFilenames, char* largeScalingFilename,
+		WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename, WCHAR* rockTextureFilename)
 	{
 		mHeightMapFilenames = *heightMapFilenames;
 		mScalingFilenames = *scalingFilenames;
@@ -119,13 +120,16 @@ namespace TerrainRenderer
 		{
 			for (int i = 0; i < mNumGridRows; ++i)
 			{
-				(mGridBottomRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], (*mBottomRowOffsets)[i].x, (*mBottomRowOffsets)[i].z);
+				(mGridBottomRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], grassTextureFilename, slopeTextureFilename,
+					rockTextureFilename, (*mBottomRowOffsets)[i].x, (*mBottomRowOffsets)[i].z);
 				mGridBottomRow[i]->SetGridPosition((*mStartingGridPositions)[filenameIndex].x, (*mStartingGridPositions)[filenameIndex].z);
 				++filenameIndex;
-				(mGridMiddleRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], (*mMiddleRowOffsets)[i].x, (*mMiddleRowOffsets)[i].z);
+				(mGridMiddleRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], grassTextureFilename, slopeTextureFilename,
+					rockTextureFilename, (*mMiddleRowOffsets)[i].x, (*mMiddleRowOffsets)[i].z);
 				mGridMiddleRow[i]->SetGridPosition((*mStartingGridPositions)[filenameIndex].x, (*mStartingGridPositions)[filenameIndex].z);
 				++filenameIndex;
-				(mGridTopRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], (*mTopRowOffsets)[i].x, (*mTopRowOffsets)[i].z);
+				(mGridTopRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], grassTextureFilename, slopeTextureFilename,
+					rockTextureFilename, (*mTopRowOffsets)[i].x, (*mTopRowOffsets)[i].z);
 				mGridTopRow[i]->SetGridPosition((*mStartingGridPositions)[filenameIndex].x, (*mStartingGridPositions)[filenameIndex].z);
 				++filenameIndex;
 			}
@@ -139,18 +143,22 @@ namespace TerrainRenderer
 		//should delete all serialized files?
 	}
 
-	void TerrainManager::Render(ID3D11DeviceContext* context, ColorShader* colorShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection)
+	void TerrainManager::Render(ID3D11DeviceContext* context, TerrainShader* terrainShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection,
+		D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection)
 	{
 		for (int i = 0; i < mNumGridRows; ++i)
 		{
 			(mGridBottomRow[i])->Render(context);
-			colorShader->Render(context, (mGridBottomRow[i])->GetIndexCount(), world, view, projection);
+			terrainShader->Render(context, mGridBottomRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection,
+				mGridBottomRow[i]->GetGrassTexture(), mGridBottomRow[i]->GetSlopeTexture(), mGridBottomRow[i]->GetRockTexture());
 
 			(mGridMiddleRow[i])->Render(context);
-			colorShader->Render(context, (mGridMiddleRow[i])->GetIndexCount(), world, view, projection);
+			terrainShader->Render(context, mGridMiddleRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection,
+				mGridMiddleRow[i]->GetGrassTexture(), mGridMiddleRow[i]->GetSlopeTexture(), mGridMiddleRow[i]->GetRockTexture());
 
 			(mGridTopRow[i])->Render(context);
-			colorShader->Render(context, (mGridTopRow[i])->GetIndexCount(), world, view, projection);
+			terrainShader->Render(context, mGridTopRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection,
+				mGridTopRow[i]->GetGrassTexture(), mGridTopRow[i]->GetSlopeTexture(), mGridTopRow[i]->GetRockTexture());
 		}
 	}
 

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Terrain.h"
-#include "ColorShader.h"
+//#include "ColorShader.h"
+#include "TerrainShader.h"
 #include "Position.h"
 #include "EasyBMP.h"
 #include "HeightMap.h"
@@ -35,9 +36,11 @@ namespace TerrainRenderer
 		//!Destructor
 		~TerrainManager();
 
-		bool Initialize(ID3D11Device* device, vector<char*>* heightMapFilenames, vector<char*>* scalingFilenames, char* largeScalingFilename);
+		bool Initialize(ID3D11Device* device, vector<char*>* heightMapFilenames, vector<char*>* scalingFilenames, char* largeScalingFilename, 
+			WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename, WCHAR* rockTextureFilename);
 		void Shutdown();
-		void Render(ID3D11DeviceContext* context, ColorShader* colorShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection);
+		void Render(ID3D11DeviceContext* context, TerrainShader* terrainShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, D3DXVECTOR4 ambientColor,
+			D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection);
 
 		//!Generates new chunks or deserializes chunks as the camera moves around
 		void GenerateChunks(Position* position);
