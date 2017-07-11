@@ -53,6 +53,8 @@ namespace TerrainRenderer
 
 			//normalizing the height of the scaling map
 			NormalizeScalingMap();
+
+			ApplyScalingMap();
 		}
 
 		// Initialize the vertex and index buffer that hold the geometry for the terrain.
@@ -108,7 +110,10 @@ namespace TerrainRenderer
 		NormalizeHeightMap();
 
 		//TEST DOING SCALING MAP HERE
-
+		if (SCALING_ENABLED)
+		{
+			ApplyScalingMap();
+		}
 	}
 
 	int Terrain::GetGridPositionX()
@@ -135,9 +140,20 @@ namespace TerrainRenderer
 	void Terrain::SetHeightMapInfo(std::shared_ptr<Terrain> terrain)
 	{
 		mHeightMap = terrain->mHeightMap;
-		mScalingMap = terrain->mScalingMap;
+		//mScalingMap = terrain->mScalingMap;
 		mGridPositionX = terrain->mGridPositionX;
 		mGridPositionY = terrain->mGridPositionY;
+	}
+
+	void Terrain::ApplyScalingMap()
+	{
+		if (mHeightMap.size() == mScalingMap.size())
+		{
+			for (int i = 0; i < mHeightMap.size(); ++i)
+			{
+				mHeightMap[i].y *= mScalingMap[i].y;
+			}
+		}
 	}
 
 	bool Terrain::LoadHeightMap(char* filename)
@@ -427,157 +443,73 @@ namespace TerrainRenderer
 				index4 = (mTerrainHeight * (j + 1)) + (i + 1);  // Upper right.
 
 				// Upper left.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y * mScalingMap[index3].y, (mHeightMap[index3].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y * mScalingMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y * mScalingMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y * mScalingMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y * mScalingMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper left.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y * mScalingMap[index3].y, (mHeightMap[index3].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y * mScalingMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y * mScalingMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Upper right.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y * mScalingMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom right.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y * mScalingMap[index2].y, (mHeightMap[index2].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom right.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y * mScalingMap[index2].y, (mHeightMap[index2].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;
 
 				// Bottom left.
-				if (SCALING_ENABLED)
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y * mScalingMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				}
-				else
-				{
-					vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				}
+				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
 				vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
 				indices[index] = index;
 				index++;

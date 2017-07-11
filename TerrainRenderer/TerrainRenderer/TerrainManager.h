@@ -62,10 +62,14 @@ namespace TerrainRenderer
 		void UpdateChunkPositions();
 		void UpdateCurrentChunk(float x, float z);
 
-		void ResolveVerticalSeams();
-		void ResolveHorizontalSeams();
+		void ResolveMoveLeftSeams();
+		void ResolveMoveRightSeams();
+		void ResolveMoveUpSeams();
+		void ResolveMoveDownSeams();
+
 		void ResolveVerticalSeam(const char* leftChunkFilename, const char* rightChunkFilename);
 		void ResolveHorizontalSeam(const char* topChunkFilename, const char* bottomChunkFilename);
+
 		void PartitionScalingMap();
 
 		void GenerateNewHeightMap(char* filename);
@@ -101,13 +105,11 @@ namespace TerrainRenderer
 		};
 
 		ChunkBorders mCurrentChunkBorders;
-		const int mBorderWidth = 30;
+		const int mBorderWidth = 10;
 
 		string mSerializationFilename = "..//TerrainRenderer//data//chunkData//chunk";
 		vector<ChunkOffset>* mStartingGridPositions;
 		HeightMap mHeightMapGenerator;
-		//default_random_engine mRandomSeedGenerator;
-		//uniform_int_distribution<int> mDistribution;
 		const int mHMHeight = 64;
 		const int mHMWidth = 64;
 		const int mLeftColumnOffset = 0;

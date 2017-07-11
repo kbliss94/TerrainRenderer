@@ -58,7 +58,6 @@ namespace TerrainRenderer
 
 			//using the time as a seed for the height map generator
 			heightMapGenerator.SetSeed(timeSeed);
-
 			timeSeed = std::chrono::system_clock::now().time_since_epoch().count();
 		}
 

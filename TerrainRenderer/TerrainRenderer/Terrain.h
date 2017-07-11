@@ -77,9 +77,13 @@ namespace TerrainRenderer
 		*/
 		void SetHeightMapInfo(std::shared_ptr<Terrain> terrain);
 
+		//!Applying the scaling map height scales to the y values of the height map
+		void ApplyScalingMap();
+
 		template<class Archive>
 		void serialize(Archive& archive)
 		{
+			//archive(mHeightMap, mScalingMap, mGridPositionX, mGridPositionY);
 			archive(mHeightMap, mScalingMap, mGridPositionX, mGridPositionY);
 		};
 

@@ -9,7 +9,7 @@ const float SCREEN_NEAR = 0.1f;
 
 const bool STITCHING_ENABLED = true;
 const bool GENERATION_ENABLED = true;
-const bool SCALING_ENABLED = false;
+const bool SCALING_ENABLED = true;
 
 #include "Input.h"
 #include "DirectX3D.h"
@@ -64,15 +64,10 @@ namespace TerrainRenderer
 		const int mNumStartUpMaps = 9;
 		const int mHMWidth = 64;
 		const int mHMHeight = 64;
-		//const int mMinDistribution = 0;
-		//const int mMaxDistribution = 500000;
 
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;
 		char* mLargeScalingFilename;
-		//default_random_engine mRandomSeedGenerator;
-		//uniform_int_distribution<int> mDistribution;
-		//std::minstd_rand0 mRandomSeedGenerator;
 	};
 }
 
