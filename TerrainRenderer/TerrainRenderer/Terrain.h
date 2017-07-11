@@ -84,7 +84,7 @@ namespace TerrainRenderer
 		void serialize(Archive& archive)
 		{
 			//archive(mHeightMap, mScalingMap, mGridPositionX, mGridPositionY);
-			archive(mHeightMap, mScalingMap, mGridPositionX, mGridPositionY);
+			archive(mHeightMap, mGridPositionX, mGridPositionY);
 		};
 
 	private:
@@ -101,25 +101,22 @@ namespace TerrainRenderer
 	private:
 		int mTerrainWidth, mTerrainHeight;
 		int mVertexCount, mIndexCount;
-		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
-		vector<HeightMapData> mHeightMap;
-		char* mHeightMapFilename;
-
-		const float mVertexColorR = 1.0f;
-		const float mVertexColorG = 1.0f;
-		const float mVertexColorB = 1.0f;
-		const float mVertexColorAlpha = 1.0f;
-
 		int mXOffset;
 		int mZOffset;
 		int mGridPositionX;
 		int mGridPositionY;
 
 		ID3D11Device* mDevice;
-
-		const float mHeightScaling = 0.5f;
-		char* mHeightScalingMap;
+		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
+		vector<HeightMapData> mHeightMap;
 		vector<HeightMapData> mScalingMap;
+		char* mHeightMapFilename;
+		char* mHeightScalingMap;
+
+		const float mVertexColorR = 1.0f;
+		const float mVertexColorG = 1.0f;
+		const float mVertexColorB = 1.0f;
+		const float mVertexColorAlpha = 1.0f;
 
 		friend class cereal::access;
 	};

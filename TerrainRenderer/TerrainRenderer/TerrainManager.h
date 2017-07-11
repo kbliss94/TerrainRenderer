@@ -39,6 +39,7 @@ namespace TerrainRenderer
 		void Shutdown();
 		void Render(ID3D11DeviceContext* context, ColorShader* colorShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection);
 
+		//!Generates new chunks or deserializes chunks as the camera moves around
 		void GenerateChunks(Position* position);
 
 		//!Serializes the terrain chunk param 
@@ -71,12 +72,28 @@ namespace TerrainRenderer
 		void ResolveHorizontalSeam(const char* topChunkFilename, const char* bottomChunkFilename);
 
 		void PartitionScalingMap();
-
 		void GenerateNewHeightMap(char* filename);
 
+	private:
+		struct ChunkOffset
+		{
+			int x, z;
+		};
+
+		struct ChunkBorders
+		{
+			float minZ, maxZ, minX, maxX;
+		};
+
+		HeightMap mHeightMapGenerator;
+		ChunkBorders mCurrentChunkBorders;
+
+		string mSerializationFilename = "..//TerrainRenderer//data//chunkData//chunk";
+		vector<ChunkOffset>* mStartingGridPositions;
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;
 		char* mLargeScalingMap;
+
 		vector<std::shared_ptr<Terrain>> mGridBottomRow;
 		vector<std::shared_ptr<Terrain>> mGridMiddleRow;
 		vector<std::shared_ptr<Terrain>> mGridTopRow;
@@ -85,35 +102,14 @@ namespace TerrainRenderer
 		vector<std::shared_ptr<Terrain>> mGridMiddleColumn;
 		vector<std::shared_ptr<Terrain>> mGridRightColumn;
 
-		struct ChunkOffset
-		{
-			int x, z;
-		};
-
 		vector<ChunkOffset>* mBottomRowOffsets;
 		vector<ChunkOffset>* mMiddleRowOffsets;
 		vector<ChunkOffset>* mTopRowOffsets;
 
-		const int mNumGridRows = 3;
-		const int mChunkOffset = 63;
-
-		bool mUpdated;
-
-		struct ChunkBorders
-		{
-			float minZ, maxZ, minX, maxX;
-		};
-
-		ChunkBorders mCurrentChunkBorders;
 		const int mBorderWidth = 10;
-
-		string mSerializationFilename = "..//TerrainRenderer//data//chunkData//chunk";
-		vector<ChunkOffset>* mStartingGridPositions;
-		HeightMap mHeightMapGenerator;
 		const int mHMHeight = 64;
 		const int mHMWidth = 64;
-		const int mLeftColumnOffset = 0;
-		const int mMiddleColumnOffset = 1;
-		const int mRightColumnOffset = 2;
+		const int mNumGridRows = 3;
+		const int mChunkOffset = 63;
 	};
 }

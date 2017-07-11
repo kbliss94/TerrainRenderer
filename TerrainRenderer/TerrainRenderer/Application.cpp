@@ -49,7 +49,6 @@ namespace TerrainRenderer
 		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM8.bmp");
 
 		heightMapGenerator.SetIsScaleMap(false);
-
 		unsigned timeSeed = std::chrono::system_clock::now().time_since_epoch().count();
 
 		for (int i = 0; i < mNumStartUpMaps; ++i)

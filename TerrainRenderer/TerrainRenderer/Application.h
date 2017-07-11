@@ -14,7 +14,6 @@ const bool SCALING_ENABLED = true;
 #include "Input.h"
 #include "DirectX3D.h"
 #include "Camera.h"
-// #include "Terrain.h"
 #include "TerrainManager.h"
 
 #include "ColorShader.h"

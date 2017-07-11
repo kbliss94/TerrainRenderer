@@ -6,7 +6,7 @@ using namespace std;
 namespace TerrainRenderer
 {
 	TerrainManager::TerrainManager(): 
-		mHeightMapFilenames(), mGridBottomRow(), mGridMiddleRow(), mGridTopRow(), mUpdated(false), mScalingFilenames()
+		mHeightMapFilenames(), mGridBottomRow(), mGridMiddleRow(), mGridTopRow(), mScalingFilenames()
 	{
 		mBottomRowOffsets = new vector<ChunkOffset>
 		{
