@@ -32,7 +32,6 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
     float4 grassColor;
     float4 slopeColor;
     float4 rockColor;
-    float slope;
     float blendAmount;
     float4 textureColor;
     float3 lightDir;
@@ -48,8 +47,8 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
     // Sample the rock color from the texture using the sampler at this texture coordinate location.
     rockColor = rockTexture.Sample(SampleType, input.tex);
 
-    //calculating the slop for this pixel/point
-    slope = 1.0f - input.normal.y;
+    //calculating the slope for this pixel/point
+    float slope = 1.0f - input.normal.y;
 
     //using the slope to determine which texture to use
         //doing a linear interpolation b/w textures so the transition b/w each one isn't a sharp line in the terrain

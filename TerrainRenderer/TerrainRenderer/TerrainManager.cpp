@@ -94,9 +94,23 @@ namespace TerrainRenderer
 		mScalingFilenames = *scalingFilenames;
 		mLargeScalingMap = largeScalingFilename;
 
-		PartitionScalingMap();
+		//applying scaling maps to the height maps here
+		if (SCALING_ENABLED)
+		{
+			PartitionScalingMap();
 
-		//seam together the height maps here
+			if (mHeightMapFilenames.size() == mScalingFilenames.size())
+			{
+				for (int i = 0; i < mHeightMapFilenames.size(); ++i)
+				{
+					ApplyScalingMap(mHeightMapFilenames[i], mScalingFilenames[i]);
+				}
+			}
+		}
+
+		//*then the scaling maps wouldn't need to be stored in Terrain
+
+		//stitch together the height maps here
 		if (STITCHING_ENABLED)
 		{
 			ResolveVerticalSeam(mHeightMapFilenames[0], mHeightMapFilenames[3]);
@@ -120,16 +134,16 @@ namespace TerrainRenderer
 		{
 			for (int i = 0; i < mNumGridRows; ++i)
 			{
-				(mGridBottomRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], grassTextureFilename, slopeTextureFilename,
-					rockTextureFilename, (*mBottomRowOffsets)[i].x, (*mBottomRowOffsets)[i].z);
+				(mGridBottomRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], grassTextureFilename, slopeTextureFilename, rockTextureFilename, 
+					(*mBottomRowOffsets)[i].x, (*mBottomRowOffsets)[i].z);
 				mGridBottomRow[i]->SetGridPosition((*mStartingGridPositions)[filenameIndex].x, (*mStartingGridPositions)[filenameIndex].z);
 				++filenameIndex;
-				(mGridMiddleRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], grassTextureFilename, slopeTextureFilename,
-					rockTextureFilename, (*mMiddleRowOffsets)[i].x, (*mMiddleRowOffsets)[i].z);
+				(mGridMiddleRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], grassTextureFilename, slopeTextureFilename, rockTextureFilename, 
+					(*mMiddleRowOffsets)[i].x, (*mMiddleRowOffsets)[i].z);
 				mGridMiddleRow[i]->SetGridPosition((*mStartingGridPositions)[filenameIndex].x, (*mStartingGridPositions)[filenameIndex].z);
 				++filenameIndex;
-				(mGridTopRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], mScalingFilenames[filenameIndex], grassTextureFilename, slopeTextureFilename,
-					rockTextureFilename, (*mTopRowOffsets)[i].x, (*mTopRowOffsets)[i].z);
+				(mGridTopRow[i])->Initialize(device, mHeightMapFilenames[filenameIndex], grassTextureFilename, slopeTextureFilename, rockTextureFilename, 
+					(*mTopRowOffsets)[i].x, (*mTopRowOffsets)[i].z);
 				mGridTopRow[i]->SetGridPosition((*mStartingGridPositions)[filenameIndex].x, (*mStartingGridPositions)[filenameIndex].z);
 				++filenameIndex;
 			}
@@ -688,5 +702,39 @@ namespace TerrainRenderer
 		mHeightMapGenerator.SetIsScaleMap(false);
 		mHeightMapGenerator.SetSeed(timeSeed);
 		mHeightMapGenerator.Generate(filename, mHMHeight, mHMWidth);
+	}
+
+	void TerrainManager::ApplyScalingMap(const char* heightMapFilename, const char* scalingMapFilename)
+	{
+		BMP heightMap, scalingMap;
+
+		heightMap.ReadFromFile(heightMapFilename);
+		scalingMap.ReadFromFile(scalingMapFilename);
+
+		if (heightMap.TellWidth() == scalingMap.TellWidth() && heightMap.TellHeight() == scalingMap.TellHeight())
+		{
+			for (int i = 0; i < heightMap.TellWidth(); ++i)
+			{
+				for (int j = 0; j < heightMap.TellHeight(); ++j)
+				{
+					//find the scaling factor for the pixel from the scaling map pixel
+					//float scalingFactor = 1 / scalingMap(i, j)->Red;
+					float scalingFactor = scalingMap(i, j)->Red / 256.0f;
+					//256 is the max color value, so scaling the red color to being between 0 & 1
+
+					//multiply all the color values for the height map by the scaling factor?
+					heightMap(i, j)->Red *= scalingFactor;
+					heightMap(i, j)->Green *= scalingFactor;
+					heightMap(i, j)->Blue *= scalingFactor;
+					//heightMap(i, j)->Red /= scalingMap(i, j)->Red;
+					//heightMap(i, j)->Green /= scalingMap(i, j)->Green;
+					//heightMap(i, j)->Blue /= scalingMap(i, j)->Blue;
+
+					//r, g, b, alpha
+				}
+			}
+		}
+
+		heightMap.WriteToFile(heightMapFilename);
 	}
 }

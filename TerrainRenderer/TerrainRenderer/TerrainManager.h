@@ -77,6 +77,8 @@ namespace TerrainRenderer
 		void PartitionScalingMap();
 		void GenerateNewHeightMap(char* filename);
 
+		void ApplyScalingMap(const char* heightMapFilename, const char* scalingMapFilename);
+
 	private:
 		struct ChunkOffset
 		{
@@ -109,7 +111,7 @@ namespace TerrainRenderer
 		vector<ChunkOffset>* mMiddleRowOffsets;
 		vector<ChunkOffset>* mTopRowOffsets;
 
-		const int mBorderWidth = 10;
+		const int mBorderWidth = 10; //20;//10;
 		const int mHMHeight = 64;
 		const int mHMWidth = 64;
 		const int mNumGridRows = 3;

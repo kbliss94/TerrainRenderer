@@ -24,13 +24,12 @@ namespace TerrainRenderer
 
 	}
 
-	bool Terrain::Initialize(ID3D11Device* device, char* heightMapFilename, char* scalingFilename, WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename,
+	bool Terrain::Initialize(ID3D11Device* device, char* heightMapFilename, WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename,
 		WCHAR* rockTextureFilename, int xOffset, int zOffset)
 	{
 		bool result;
 		mXOffset = xOffset;
 		mZOffset = zOffset;
-		mHeightScalingMap = scalingFilename;
 		mHeightMapFilename = heightMapFilename;
 
 		// Load in the height map for the terrain.
@@ -42,21 +41,6 @@ namespace TerrainRenderer
 
 		// Normalize the height of the height map.
 		NormalizeHeightMap();
-
-		if (SCALING_ENABLED)
-		{
-			//loading in the height map for scaling the terrain
-			result = LoadScalingMap(scalingFilename);
-			if (!result)
-			{
-				return false;
-			}
-
-			//normalizing the height of the scaling map
-			NormalizeScalingMap();
-
-			ApplyScalingMap();
-		}
 
 		//////////////////////////////////////////////////////////////////for the texturing
 		result = CalculateNormals();
@@ -115,6 +99,10 @@ namespace TerrainRenderer
 		mXOffset = xUpdate;
 		mZOffset = zUpdate;
 
+		//recalculating the normals & texture coordinates to update the texture
+		CalculateNormals();
+		CalculateTextureCoordinates();
+
 		InitializeBuffers(mDevice);
 	}
 
@@ -125,12 +113,6 @@ namespace TerrainRenderer
 
 		//normalizing the height of the height map
 		NormalizeHeightMap();
-
-		//TEST DOING SCALING MAP HERE
-		if (SCALING_ENABLED)
-		{
-			ApplyScalingMap();
-		}
 	}
 
 	int Terrain::GetGridPositionX()
@@ -157,20 +139,8 @@ namespace TerrainRenderer
 	void Terrain::SetHeightMapInfo(std::shared_ptr<Terrain> terrain)
 	{
 		mHeightMap = terrain->mHeightMap;
-		//mScalingMap = terrain->mScalingMap;
 		mGridPositionX = terrain->mGridPositionX;
 		mGridPositionY = terrain->mGridPositionY;
-	}
-
-	void Terrain::ApplyScalingMap()
-	{
-		if (mHeightMap.size() == mScalingMap.size())
-		{
-			for (int i = 0; i < mHeightMap.size(); ++i)
-			{
-				mHeightMap[i].y *= mScalingMap[i].y;
-			}
-		}
 	}
 
 	ID3D11ShaderResourceView* Terrain::GetGrassTexture()
@@ -288,105 +258,6 @@ namespace TerrainRenderer
 		return true;
 	}
 
-	bool Terrain::LoadScalingMap(char* filename)
-	{
-		FILE* filePtr;
-		int error;
-		unsigned int count;
-		BITMAPFILEHEADER bitmapFileHeader;
-		BITMAPINFOHEADER bitmapInfoHeader;
-		int imageSize, i, j, k, index;
-		unsigned char* bitmapImage;
-		unsigned char height;
-
-		// Open the height map file in binary.
-		error = fopen_s(&filePtr, filename, "rb");
-		if (error != 0)
-		{
-			return false;
-		}
-
-		// Read in the file header.
-		count = fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr);
-		if (count != 1)
-		{
-			return false;
-		}
-
-		// Read in the bitmap info header.
-		count = fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr);
-		if (count != 1)
-		{
-			return false;
-		}
-
-		// Save the dimensions of the terrain.
-		mTerrainWidth = bitmapInfoHeader.biWidth;
-		mTerrainHeight = bitmapInfoHeader.biHeight;
-
-		// Calculate the size of the bitmap image data.
-		imageSize = mTerrainWidth * mTerrainHeight * 3;
-
-		// Allocate memory for the bitmap image data.
-		bitmapImage = new unsigned char[imageSize];
-		if (!bitmapImage)
-		{
-			return false;
-		}
-
-		// Move to the beginning of the bitmap data.
-		fseek(filePtr, bitmapFileHeader.bfOffBits, SEEK_SET);
-
-		// Read in the bitmap image data.
-		count = fread(bitmapImage, 1, imageSize, filePtr);
-		if (count != imageSize)
-		{
-			return false;
-		}
-
-		// Close the file.
-		error = fclose(filePtr);
-		if (error != 0)
-		{
-			return false;
-		}
-
-		// Create the structure to hold the height map data.
-		//mScalingMap = new HeightMapData[mTerrainWidth * mTerrainHeight];
-		mScalingMap.resize(mTerrainWidth * mTerrainHeight);
-
-		//if (!mScalingMap)
-		//{
-		//	return false;
-		//}
-
-		// Initialize the position in the image data buffer.
-		k = 0;
-
-		// Read the image data into the height map.
-		for (j = 0; j < mTerrainHeight; j++)
-		{
-			for (i = 0; i < mTerrainWidth; i++)
-			{
-				height = bitmapImage[k];
-
-				index = (mTerrainHeight * j) + i;
-
-				mScalingMap[index].x = (float)i;
-				mScalingMap[index].y = (float)height;
-				mScalingMap[index].z = (float)j;
-
-				k += 3;
-			}
-		}
-
-		// Release the bitmap image data.
-		delete[] bitmapImage;
-		bitmapImage = 0;
-
-		return true;
-	}
-
 	void Terrain::NormalizeHeightMap()
 	{
 		for (int j = 0; j < mTerrainHeight; j++)
@@ -394,18 +265,6 @@ namespace TerrainRenderer
 			for (int i = 0; i < mTerrainWidth; i++)
 			{
 				mHeightMap[(mTerrainHeight * j) + i].y /= 15.0f;
-			}
-		}
-	}
-
-	void Terrain::NormalizeScalingMap()
-	{
-		for (int j = 0; j < mTerrainHeight; j++)
-		{
-			for (int i = 0; i < mTerrainWidth; i++)
-			{
-				mScalingMap[(mTerrainHeight * j) + i].y /= 15.0f;
-				mScalingMap[(mTerrainHeight * j) + i].y /= 15.0f;
 			}
 		}
 	}
@@ -703,7 +562,7 @@ namespace TerrainRenderer
 		float tu, tv;
 
 		// Calculate the number of vertices in the terrain mesh.
-		//mVertexCount = (mTerrainWidth - 1) * (mTerrainHeight - 1) * 12;
+		//the mesh is made up of two triangles per quad, so only 6 vertices for each quad is needed
 		mVertexCount = (mTerrainWidth - 1) * (mTerrainHeight - 1) * 6;
 
 		// Set the index count to the same as the vertex count.
@@ -756,14 +615,14 @@ namespace TerrainRenderer
 				tv = mHeightMap[index4].tv;
 
 				// Modify the texture coordinates to cover the top and right edge.
-				if (tu == 0.0f) 
-				{ 
-					tu = 1.0f; 
+				if (tu == 0.0f)
+				{
+					tu = 1.0f;
 				}
 
-				if (tv == 1.0f) 
-				{ 
-					tv = 0.0f; 
+				if (tv == 1.0f)
+				{
+					tv = 0.0f;
 				}
 
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
@@ -772,12 +631,6 @@ namespace TerrainRenderer
 				indices[index] = index;
 				index++;
 
-				//// Upper right.
-				//vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
 				// Bottom left.
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
 				vertices[index].texture = D3DXVECTOR2(mHeightMap[index1].tu, mHeightMap[index1].tv);
@@ -791,32 +644,20 @@ namespace TerrainRenderer
 				vertices[index].normal = D3DXVECTOR3(mHeightMap[index1].nx, mHeightMap[index1].ny, mHeightMap[index1].nz);
 				indices[index] = index;
 				index++;
-
-				//// Upper left.
-				//vertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Bottom left.
-				//vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
 
 				// Upper right.
 				tu = mHeightMap[index4].tu;
 				tv = mHeightMap[index4].tv;
 
 				// Modify the texture coordinates to cover the top and right edge.
-				if (tu == 0.0f) 
-				{ 
-					tu = 1.0f; 
+				if (tu == 0.0f)
+				{
+					tu = 1.0f;
 				}
 
-				if (tv == 1.0f) 
-				{ 
-					tv = 0.0f; 
+				if (tv == 1.0f)
+				{
+					tv = 0.0f;
 				}
 
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
@@ -825,19 +666,13 @@ namespace TerrainRenderer
 				indices[index] = index;
 				index++;
 
-				//// Upper right.
-				//vertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
 				// Bottom right.
 				tu = mHeightMap[index2].tu;
 
 				// Modify the texture coordinates to cover the right edge.
-				if (tu == 0.0f) 
-				{ 
-					tu = 1.0f; 
+				if (tu == 0.0f)
+				{
+					tu = 1.0f;
 				}
 
 				vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
@@ -845,18 +680,6 @@ namespace TerrainRenderer
 				vertices[index].normal = D3DXVECTOR3(mHeightMap[index2].nx, mHeightMap[index2].ny, mHeightMap[index2].nz);
 				indices[index] = index;
 				index++;
-
-				//// Bottom right.
-				//vertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
-
-				//// Bottom left.
-				//vertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
-				//vertices[index].color = D3DXVECTOR4(mVertexColorR, mVertexColorG, mVertexColorB, mVertexColorAlpha);
-				//indices[index] = index;
-				//index++;
 			}
 		}
 
@@ -926,8 +749,6 @@ namespace TerrainRenderer
 			mVertexBuffer->Release();
 			mVertexBuffer = 0;
 		}
-
-		return;
 	}
 
 
@@ -947,6 +768,7 @@ namespace TerrainRenderer
 		context->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case a line list.
-		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		//context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 }

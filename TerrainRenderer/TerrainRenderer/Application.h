@@ -16,7 +16,6 @@ const bool SCALING_ENABLED = true;
 #include "Camera.h"
 #include "TerrainManager.h"
 
-//#include "ColorShader.h"
 #include "Timer.h"
 #include "Position.h"
 #include "FPS.h"
@@ -73,8 +72,8 @@ namespace TerrainRenderer
 		char* mLargeScalingFilename;
 
 		WCHAR* mGrassFilename = L"..//TerrainRenderer//data//grass.dds";
-		WCHAR* mSlopeFilename = L"..//TerrainRenderer//data//slope.dds";
-		WCHAR* mRockFilename = L"..//TerrainRenderer//data//rock.dds";
+		WCHAR* mSlopeFilename = L"..//TerrainRenderer//data//rock.dds";
+		WCHAR* mRockFilename = L"..//TerrainRenderer//data//snow.dds";
 	};
 }
 

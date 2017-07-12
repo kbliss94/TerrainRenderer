@@ -50,11 +50,6 @@ namespace TerrainRenderer
 			};
 		};
 
-		struct ScalingMapData
-		{
-			float x, y, z;
-		};
-
 		struct VectorType
 		{
 			float x, y, z;
@@ -73,7 +68,7 @@ namespace TerrainRenderer
 		//!Destructor
 		~Terrain();
 
-		bool Initialize(ID3D11Device* device, char* heightMapFilename, char* scalingFilename, WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename,
+		bool Initialize(ID3D11Device* device, char* heightMapFilename, WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename,
 			WCHAR* rockTextureFilename, int xOffset = 0, int zOffset = 0);
 		void Shutdown();
 		void Render(ID3D11DeviceContext* context);
@@ -81,7 +76,6 @@ namespace TerrainRenderer
 		int GetIndexCount();
 		void UpdatePosition(int xUpdate, int zUpdate);
 
-		//will need to add a scaling filename as a param
 		void UpdateHeightMap();
 
 		int GetGridPositionX();
@@ -92,17 +86,13 @@ namespace TerrainRenderer
 
 		//!Replaces current data with deserialized data without destroying other data
 		/*
-		Replaces: mHeightMap, mScalingMap, mGridPositionX, mGridPositionY
+		Replaces: mHeightMap, mGridPositionX, mGridPositionY
 		*/
 		void SetHeightMapInfo(std::shared_ptr<Terrain> terrain);
-
-		//!Applying the scaling map height scales to the y values of the height map
-		void ApplyScalingMap();
 
 		template<class Archive>
 		void serialize(Archive& archive)
 		{
-			//archive(mHeightMap, mScalingMap, mGridPositionX, mGridPositionY);
 			archive(mHeightMap, mGridPositionX, mGridPositionY);
 		};
 
@@ -112,9 +102,7 @@ namespace TerrainRenderer
 
 	private:
 		bool LoadHeightMap(char* filename);
-		bool LoadScalingMap(char* filename);
 		void NormalizeHeightMap();
-		void NormalizeScalingMap();
 		void ShutdownHeightMap();
 
 		bool CalculateNormals();
@@ -137,9 +125,7 @@ namespace TerrainRenderer
 		ID3D11Device* mDevice;
 		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
 		vector<HeightMapData> mHeightMap;
-		vector<ScalingMapData> mScalingMap;
 		char* mHeightMapFilename;
-		char* mHeightScalingMap;
 
 		const float mVertexColorR = 1.0f;
 		const float mVertexColorG = 1.0f;

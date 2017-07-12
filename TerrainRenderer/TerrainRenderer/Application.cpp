@@ -7,7 +7,6 @@ namespace TerrainRenderer
 		mInput = 0;
 		mDirect3D = 0;
 		mCamera = 0;
-		//m_ColorShader = 0;
 		mTimer = 0;
 		mPosition = 0;
 		mFPS = 0;
@@ -52,6 +51,7 @@ namespace TerrainRenderer
 
 		heightMapGenerator.SetIsScaleMap(false);
 		unsigned timeSeed = std::chrono::system_clock::now().time_since_epoch().count();
+		//int testSeed = 0;
 
 		for (int i = 0; i < mNumStartUpMaps; ++i)
 		{
@@ -60,6 +60,9 @@ namespace TerrainRenderer
 			//using the time as a seed for the height map generator
 			heightMapGenerator.SetSeed(timeSeed);
 			timeSeed = std::chrono::system_clock::now().time_since_epoch().count();
+
+			//heightMapGenerator.SetSeed(testSeed);
+			//++testSeed;
 		}
 
 		//the filenames for the scaling chunks created from the big scaling map
@@ -271,7 +274,10 @@ namespace TerrainRenderer
 		}
 
 		// Initialize the light object.
-		mLight->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
+		//mLight->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
+		//mLight->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+		//mLight->SetDirection(-0.5f, -1.0f, 0.0f);
+		mLight->SetAmbientColor(1.0f, 1.0f, 1.0f, 1.0f);
 		mLight->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 		mLight->SetDirection(-0.5f, -1.0f, 0.0f);
 
