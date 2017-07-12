@@ -106,6 +106,9 @@ namespace TerrainRenderer
 					ApplyScalingMap(mHeightMapFilenames[i], mScalingFilenames[i]);
 				}
 			}
+
+			//getting rid of the used scaling maps
+			mScalingFilenames.clear();
 		}
 
 		//*then the scaling maps wouldn't need to be stored in Terrain
@@ -652,6 +655,16 @@ namespace TerrainRenderer
 	//Partitioning the large scale map into 9 smaller 64x64 chunks
 	void TerrainManager::PartitionScalingMap()
 	{
+		if (mScalingFilenames.empty())
+		{
+			for (int i = 0; i < mNumGridRows * mNumGridRows; ++i)
+			{
+				string filename = mScalingFilenameStart;
+				filename += to_string(i) + ".bmp";
+				mScalingFilenames.emplace_back(const_cast<char*>(filename.c_str()));
+			}
+		}
+
 		BMP largeMap, smallMap;
 
 		largeMap.ReadFromFile(mLargeScalingMap);
@@ -663,7 +676,7 @@ namespace TerrainRenderer
 		int minI = 0;
 		const int width = 64;
 
-		for (int k = 0; k < 9; ++k)
+		for (int k = 0; k < mNumGridRows * mNumGridRows; ++k)
 		{
 			for (int i = minI; i < (minI + width); ++i)
 			{
@@ -702,6 +715,32 @@ namespace TerrainRenderer
 		mHeightMapGenerator.SetIsScaleMap(false);
 		mHeightMapGenerator.SetSeed(timeSeed);
 		mHeightMapGenerator.Generate(filename, mHMHeight, mHMWidth);
+
+		//apply scaling map here
+		if (mScalingFilenames.empty())
+		{
+			//generate a new large scaling map & partition it
+			GenerateNewScalingMaps();
+		}
+		
+		//apply scaling map at the end of the vector
+		ApplyScalingMap(filename, mScalingFilenames[mScalingFilenames.size() - 1]);
+
+		//pop the used scaling map off the end of the vector
+		mScalingFilenames.pop_back();
+	}
+
+	void TerrainManager::GenerateNewScalingMaps()
+	{
+		//generate new scaling map
+		unsigned timeSeed = std::chrono::system_clock::now().time_since_epoch().count();
+
+		mHeightMapGenerator.SetIsScaleMap(true);
+		mHeightMapGenerator.SetSeed(timeSeed);
+		mHeightMapGenerator.Generate(mLargeScalingMap, mSMHeight, mSMWidth);
+
+		//partition new scaling map
+		PartitionScalingMap();
 	}
 
 	void TerrainManager::ApplyScalingMap(const char* heightMapFilename, const char* scalingMapFilename)

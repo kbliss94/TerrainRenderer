@@ -76,6 +76,7 @@ namespace TerrainRenderer
 
 		void PartitionScalingMap();
 		void GenerateNewHeightMap(char* filename);
+		void GenerateNewScalingMaps();
 
 		void ApplyScalingMap(const char* heightMapFilename, const char* scalingMapFilename);
 
@@ -98,6 +99,7 @@ namespace TerrainRenderer
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;
 		char* mLargeScalingMap;
+		char* mScalingFilenameStart = "..//TerrainRenderer//data//scaling";
 
 		vector<std::shared_ptr<Terrain>> mGridBottomRow;
 		vector<std::shared_ptr<Terrain>> mGridMiddleRow;
@@ -114,6 +116,8 @@ namespace TerrainRenderer
 		const int mBorderWidth = 10; //20;//10;
 		const int mHMHeight = 64;
 		const int mHMWidth = 64;
+		const int mSMHeight = 192;
+		const int mSMWidth = 192;
 		const int mNumGridRows = 3;
 		const int mChunkOffset = 63;
 	};
