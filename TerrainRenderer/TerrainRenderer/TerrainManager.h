@@ -80,6 +80,9 @@ namespace TerrainRenderer
 
 		void ApplyScalingMap(const char* heightMapFilename, const char* scalingMapFilename);
 
+		//!The oldMapFilename will contain the map from the newMapFilename
+		void SetNewHeightMap(const char* oldMapFilename, const char* newMapFilename);
+
 	private:
 		struct ChunkOffset
 		{

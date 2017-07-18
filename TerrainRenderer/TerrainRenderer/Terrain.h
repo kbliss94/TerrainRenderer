@@ -84,6 +84,8 @@ namespace TerrainRenderer
 
 		char* GetHeightMapFilename();
 
+		vector<HeightMapData>& GetHeightMap();
+
 		//!Replaces current data with deserialized data without destroying other data
 		/*
 		Replaces: mHeightMap, mGridPositionX, mGridPositionY

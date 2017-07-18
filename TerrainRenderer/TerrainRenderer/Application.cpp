@@ -50,19 +50,23 @@ namespace TerrainRenderer
 		mHeightMapFilenames.push_back("..//TerrainRenderer//data//HM8.bmp");
 
 		heightMapGenerator.SetIsScaleMap(false);
-		unsigned timeSeed = std::chrono::system_clock::now().time_since_epoch().count();
-		//int testSeed = 0;
+
+		unsigned seed = 0;
 
 		for (int i = 0; i < mNumStartUpMaps; ++i)
 		{
+			if (RANDOM_GENERATION)
+			{
+				seed = std::chrono::system_clock::now().time_since_epoch().count();
+			}
+			else
+			{
+				++seed;
+			}
+
+			heightMapGenerator.SetSeed(seed);
+
 			heightMapGenerator.Generate(mHeightMapFilenames[i], mHMWidth, mHMHeight);
-
-			//using the time as a seed for the height map generator
-			heightMapGenerator.SetSeed(timeSeed);
-			timeSeed = std::chrono::system_clock::now().time_since_epoch().count();
-
-			//heightMapGenerator.SetSeed(testSeed);
-			//++testSeed;
 		}
 
 		//the filenames for the scaling chunks created from the big scaling map
@@ -79,7 +83,17 @@ namespace TerrainRenderer
 		//creating the big scaling map
 		heightMapGenerator.SetIsScaleMap(true);
 		char* mLargeScalingFilename = "..//TerrainRenderer//data//scalingMap.bmp";
-		heightMapGenerator.SetSeed(70 /*Distribution(RandomSeedGenerator)*/);
+
+		if (RANDOM_GENERATION)
+		{
+			seed = std::chrono::system_clock::now().time_since_epoch().count();
+		}
+		else
+		{
+			seed = 70;
+		}
+
+		heightMapGenerator.SetSeed(seed);
 		heightMapGenerator.Generate(mLargeScalingFilename, (mHMWidth * 3), (mHMHeight * 3));
 
 		// Create the input object.  The input object will be used to handle reading the keyboard and mouse input from the user.

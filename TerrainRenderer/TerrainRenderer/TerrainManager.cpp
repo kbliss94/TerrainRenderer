@@ -315,14 +315,16 @@ namespace TerrainRenderer
 			(*mBottomRowOffsets)[i].x = (*mBottomRowOffsets)[i].x - mChunkOffset;
 		}
 
-		//serializing the right column & setting its height map info equal to the middle column height map info
 		for (int i = 0; i < mNumGridRows; ++i)
 		{
+			//serializing the right column & setting its height map & grid position equal to the middle column's height map & grid position
 			Serialize(mGridRightColumn[i]);
-			mGridRightColumn[i]->SetHeightMapInfo(mGridMiddleColumn[i]);
+			SetNewHeightMap(mGridRightColumn[i]->GetHeightMapFilename(), mGridMiddleColumn[i]->GetHeightMapFilename());
+			mGridRightColumn[i]->SetGridPosition(mGridMiddleColumn[i]->GetGridPositionX(), mGridMiddleColumn[i]->GetGridPositionY());
 
-			//setting the middle column height map info equal to the left column height map info
-			mGridMiddleColumn[i]->SetHeightMapInfo(mGridLeftColumn[i]);
+			//setting the middle column height map & grid position equal to the left column height map & grid position
+			SetNewHeightMap(mGridMiddleColumn[i]->GetHeightMapFilename(), mGridLeftColumn[i]->GetHeightMapFilename());
+			mGridMiddleColumn[i]->SetGridPosition(mGridLeftColumn[i]->GetGridPositionX(), mGridLeftColumn[i]->GetGridPositionY());
 
 			//updating the grid positions for the left column
 			mGridLeftColumn[i]->SetGridPosition((mGridLeftColumn[0]->GetGridPositionX() - 1), mGridLeftColumn[0]->GetGridPositionY());
@@ -350,12 +352,14 @@ namespace TerrainRenderer
 
 		for (int i = 0; i < mNumGridRows; ++i)
 		{
-			//serializing the left column & setting its height map info equal to the middle column height map info
+			//serializing the left column & setting its height map & grid position equal to the middle column height map & grid position
 			Serialize(mGridLeftColumn[i]);
-			mGridLeftColumn[i]->SetHeightMapInfo(mGridMiddleColumn[i]);
+			SetNewHeightMap(mGridLeftColumn[i]->GetHeightMapFilename(), mGridMiddleColumn[i]->GetHeightMapFilename());
+			mGridLeftColumn[i]->SetGridPosition(mGridMiddleColumn[i]->GetGridPositionX(), mGridMiddleColumn[i]->GetGridPositionY());
 
-			//setting the middle column height map info equal to the right column height map info
-			mGridMiddleColumn[i]->SetHeightMapInfo(mGridRightColumn[i]);
+			//setting the middle column height map & grid position equal to the right column height map & grid position
+			SetNewHeightMap(mGridMiddleColumn[i]->GetHeightMapFilename(), mGridRightColumn[i]->GetHeightMapFilename());
+			mGridMiddleColumn[i]->SetGridPosition(mGridRightColumn[i]->GetGridPositionX(), mGridRightColumn[i]->GetGridPositionY());
 
 			//updating the grid positions for the right column
 			mGridRightColumn[i]->SetGridPosition((mGridRightColumn[i]->GetGridPositionX() + 1), mGridRightColumn[i]->GetGridPositionY());
@@ -383,12 +387,14 @@ namespace TerrainRenderer
 
 		for (int i = 0; i < mNumGridRows; ++i)
 		{
-			//serializing the bottom row & setting its height map info equal to the middle row height map info
+			//serializing the bottom row & setting its height map & grid position equal to the middle row height map & grid position
 			Serialize(mGridBottomRow[i]);
-			mGridBottomRow[i]->SetHeightMapInfo(mGridMiddleRow[i]);
+			SetNewHeightMap(mGridBottomRow[i]->GetHeightMapFilename(), mGridMiddleRow[i]->GetHeightMapFilename());
+			mGridBottomRow[i]->SetGridPosition(mGridMiddleRow[i]->GetGridPositionX(), mGridMiddleRow[i]->GetGridPositionY());
 
-			//setting the middle row height map info equal to the top row height map info
-			mGridMiddleRow[i]->SetHeightMapInfo(mGridTopRow[i]);
+			//setting the middle row height map & grid position equal to the top row height map & grid position
+			SetNewHeightMap(mGridMiddleRow[i]->GetHeightMapFilename(), mGridTopRow[i]->GetHeightMapFilename());
+			mGridMiddleRow[i]->SetGridPosition(mGridTopRow[i]->GetGridPositionX(), mGridTopRow[i]->GetGridPositionY());
 
 			//updating the grid positions for the top row
 			mGridTopRow[i]->SetGridPosition(mGridTopRow[i]->GetGridPositionX(), (mGridTopRow[i]->GetGridPositionY() + 1));
@@ -417,12 +423,14 @@ namespace TerrainRenderer
 
 		for (int i = 0; i < mNumGridRows; ++i)
 		{
-			//serialize the top row & set its height map info equal to the middle row height map info
+			//serialize the top row & set its height map & grid position equal to the middle row height map & grid position
 			Serialize(mGridTopRow[i]);
-			mGridTopRow[i]->SetHeightMapInfo(mGridMiddleRow[i]);
+			SetNewHeightMap(mGridTopRow[i]->GetHeightMapFilename(), mGridMiddleRow[i]->GetHeightMapFilename());
+			mGridTopRow[i]->SetGridPosition(mGridMiddleRow[i]->GetGridPositionX(), mGridMiddleRow[i]->GetGridPositionY());
 
-			//setting the middle row height map info equal to the bottom row height map info
-			mGridMiddleRow[i]->SetHeightMapInfo(mGridBottomRow[i]);
+			//setting the middle row height map & grid position equal to the bottom row height map & grid position
+			SetNewHeightMap(mGridMiddleRow[i]->GetHeightMapFilename(), mGridBottomRow[i]->GetHeightMapFilename());
+			mGridMiddleRow[i]->SetGridPosition(mGridBottomRow[i]->GetGridPositionX(), mGridBottomRow[i]->GetGridPositionY());
 
 			//updating the grid positions for the bottom row
 			mGridBottomRow[i]->SetGridPosition(mGridBottomRow[i]->GetGridPositionX(), (mGridBottomRow[i]->GetGridPositionY() - 1));
@@ -435,6 +443,7 @@ namespace TerrainRenderer
 			if (!Deserialize(mGridBottomRow[i]->GetGridPositionX(), mGridBottomRow[i]->GetGridPositionY(), mGridBottomRow[i]))
 			{
 				GenerateNewHeightMap(mGridBottomRow[i]->GetHeightMapFilename());
+				//need to load in the data for the new height map
 			}
 		}
 	}
@@ -775,5 +784,12 @@ namespace TerrainRenderer
 		}
 
 		heightMap.WriteToFile(heightMapFilename);
+	}
+
+	void TerrainManager::SetNewHeightMap(const char* oldMapFilename, const char* newMapFilename)
+	{
+		BMP newMap;
+		newMap.ReadFromFile(newMapFilename);
+		newMap.WriteToFile(oldMapFilename);
 	}
 }

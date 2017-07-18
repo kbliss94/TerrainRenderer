@@ -10,6 +10,7 @@ const float SCREEN_NEAR = 0.1f;
 const bool STITCHING_ENABLED = true;
 const bool GENERATION_ENABLED = true;
 const bool SCALING_ENABLED = true;
+const bool RANDOM_GENERATION = false;
 
 #include "Input.h"
 #include "DirectX3D.h"

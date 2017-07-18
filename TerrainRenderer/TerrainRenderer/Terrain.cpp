@@ -136,6 +136,11 @@ namespace TerrainRenderer
 		return mHeightMapFilename;
 	}
 
+	vector<Terrain::HeightMapData>& Terrain::GetHeightMap()
+	{
+		return mHeightMap;
+	}
+
 	void Terrain::SetHeightMapInfo(std::shared_ptr<Terrain> terrain)
 	{
 		mHeightMap = terrain->mHeightMap;
