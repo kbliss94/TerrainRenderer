@@ -5,7 +5,7 @@ namespace TerrainRenderer
 	DirectX3D::DirectX3D():
 		mSwapChain(nullptr), mDevice(nullptr), mDeviceContext(nullptr), mRenderTargetView(nullptr), mDepthStencilBuffer(nullptr),
 		mDepthStencilState(nullptr), mDepthStencilView(nullptr), mRasterState(nullptr), mDepthDisabledStencilState(nullptr),
-		mAlphaEnableBlendingState(nullptr), mAlphaDisableBlendingState(nullptr)
+		mAlphaEnableBlendingState(nullptr), mAlphaDisableBlendingState(nullptr), mRasterStateNoCulling(nullptr)
 	{
 
 	}
@@ -318,6 +318,25 @@ namespace TerrainRenderer
 
 		mDeviceContext->RSSetState(mRasterState);
 
+		// Setup a raster description which turns off back face culling.
+		rasterDesc.AntialiasedLineEnable = false;
+		rasterDesc.CullMode = D3D11_CULL_NONE;
+		rasterDesc.DepthBias = 0;
+		rasterDesc.DepthBiasClamp = 0.0f;
+		rasterDesc.DepthClipEnable = true;
+		rasterDesc.FillMode = D3D11_FILL_SOLID;
+		rasterDesc.FrontCounterClockwise = false;
+		rasterDesc.MultisampleEnable = false;
+		rasterDesc.ScissorEnable = false;
+		rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+		// Create the no culling rasterizer state.
+		result = mDevice->CreateRasterizerState(&rasterDesc, &mRasterStateNoCulling);
+		if (FAILED(result))
+		{
+			return false;
+		}
+
 		//setting up the viewport so that Direct3D can map clip space coordinates to the render target space
 			//will be entire size of the window
 
@@ -418,6 +437,12 @@ namespace TerrainRenderer
 		{
 			mDepthDisabledStencilState->Release();
 			mDepthDisabledStencilState = nullptr;
+		}
+
+		if (mRasterStateNoCulling)
+		{
+			mRasterStateNoCulling->Release();
+			mRasterStateNoCulling = 0;
 		}
 
 		if (mRasterState)
@@ -552,5 +577,22 @@ namespace TerrainRenderer
 		blendFactor[3] = 0.0f;
 
 		mDeviceContext->OMSetBlendState(mAlphaEnableBlendingState, blendFactor, 0xffffffff);
+	}
+
+	void DirectX3D::TurnOnCulling()
+	{
+		// Set the culling rasterizer state.
+		mDeviceContext->RSSetState(mRasterState);
+
+		return;
+	}
+
+
+	void DirectX3D::TurnOffCulling()
+	{
+		// Set the no back face culling rasterizer state.
+		mDeviceContext->RSSetState(mRasterStateNoCulling);
+
+		return;
 	}
 }

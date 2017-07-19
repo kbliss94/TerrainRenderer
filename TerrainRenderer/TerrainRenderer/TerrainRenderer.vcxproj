@@ -190,6 +190,8 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="QuadTree.cpp" />
+    <ClCompile Include="SkyDome.cpp" />
+    <ClCompile Include="SkyDomeShader.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TerrainManager.cpp" />
@@ -222,6 +224,8 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="QuadTree.h" />
+    <ClInclude Include="SkyDome.h" />
+    <ClInclude Include="SkyDomeShader.h" />
     <ClInclude Include="System.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TerrainManager.h" />
@@ -267,6 +271,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="LightVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="SkyDomePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="SkyDomeVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

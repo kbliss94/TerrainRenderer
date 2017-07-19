@@ -34,6 +34,9 @@
     <Filter Include="Source Files\Shaders\Terrain">
       <UniqueIdentifier>{e7fce8ea-431b-4788-8903-2b56b797d46b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Shaders\SkyDome">
+      <UniqueIdentifier>{b84f4473-152c-47d8-9760-be5e4a16e6c8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -119,6 +122,12 @@
     </ClCompile>
     <ClCompile Include="Frustum.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyDome.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyDomeShader.cpp">
+      <Filter>Source Files\Shaders\SkyDome</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -212,6 +221,12 @@
     <ClInclude Include="Frustum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SkyDome.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyDomeShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ColorPS.hlsl">
@@ -243,6 +258,12 @@
     </FxCompile>
     <FxCompile Include="TerrainPS.hlsl">
       <Filter>Source Files\Shaders\Terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyDomeVS.hlsl">
+      <Filter>Source Files\Shaders\SkyDome</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyDomePS.hlsl">
+      <Filter>Source Files\Shaders\SkyDome</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

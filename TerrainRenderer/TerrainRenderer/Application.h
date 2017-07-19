@@ -28,6 +28,8 @@ const bool QUADTREES_ENABLED = true;
 #include "TerrainShader.h"
 #include "Light.h"
 #include "Frustum.h"
+#include "SkyDome.h"
+#include "SkyDomeShader.h"
 #include "noiseutils.h"
 
 #include <random>
@@ -66,6 +68,8 @@ namespace TerrainRenderer
 		TerrainShader* mTerrainShader;
 		Frustum* mFrustum;
 		Light* mLight;
+		SkyDome* mSkyDome;
+		SkyDomeShader* mSkyDomeShader;
 
 		const int mNumStartUpMaps = 9;
 		const int mHMWidth = 64;

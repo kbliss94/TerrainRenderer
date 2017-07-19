@@ -86,16 +86,16 @@ namespace TerrainRenderer
 		// Update the forward speed movement based on the frame time and whether the user is holding the key down or not.
 		if (keydown)
 		{
-			m_forwardSpeed += m_frameTime * 0.001f;
+			m_forwardSpeed += m_frameTime * mSpeedIncrease;
 
-			if (m_forwardSpeed > (m_frameTime * 0.03f))
+			if (m_forwardSpeed > (m_frameTime * mSpeedMax))
 			{
-				m_forwardSpeed = m_frameTime * 0.03f;
+				m_forwardSpeed = m_frameTime * mSpeedMax;
 			}
 		}
 		else
 		{
-			m_forwardSpeed -= m_frameTime * 0.0007f;
+			m_forwardSpeed -= m_frameTime * mSpeedDecrease;
 
 			if (m_forwardSpeed < 0.0f)
 			{
@@ -122,16 +122,16 @@ namespace TerrainRenderer
 		// Update the backward speed movement based on the frame time and whether the user is holding the key down or not.
 		if (keydown)
 		{
-			m_backwardSpeed += m_frameTime * 0.001f;
+			m_backwardSpeed += m_frameTime * mSpeedIncrease;
 
-			if (m_backwardSpeed > (m_frameTime * 0.03f))
+			if (m_backwardSpeed > (m_frameTime * mSpeedMax))
 			{
-				m_backwardSpeed = m_frameTime * 0.03f;
+				m_backwardSpeed = m_frameTime * mSpeedMax;
 			}
 		}
 		else
 		{
-			m_backwardSpeed -= m_frameTime * 0.0007f;
+			m_backwardSpeed -= m_frameTime * mSpeedDecrease;
 
 			if (m_backwardSpeed < 0.0f)
 			{

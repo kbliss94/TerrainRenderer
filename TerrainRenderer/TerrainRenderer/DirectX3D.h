@@ -62,6 +62,9 @@ namespace TerrainRenderer
 		void TurnOnAlphaBlending();
 		void TurnOffAlphaBlending();
 
+		void TurnOnCulling();
+		void TurnOffCulling();
+
 	private:
 		const static int mVCDescriptionSize = 128;
 		bool mVSyncEnabled;
@@ -75,6 +78,8 @@ namespace TerrainRenderer
 		ID3D11DepthStencilState* mDepthStencilState;
 		ID3D11DepthStencilView* mDepthStencilView;
 		ID3D11RasterizerState* mRasterState;
+
+		ID3D11RasterizerState* mRasterStateNoCulling;
 		D3DXMATRIX mProjectionMatrix;
 		D3DXMATRIX mWorldMatrix;
 		D3DXMATRIX mOrthoMatrix;

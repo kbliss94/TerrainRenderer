@@ -39,6 +39,15 @@ namespace TerrainRenderer
 		float m_upwardSpeed, m_downwardSpeed;
 		float m_leftTurnSpeed, m_rightTurnSpeed;
 		float m_lookUpSpeed, m_lookDownSpeed;
+
+		const float mSpeedIncrease = 0.000025f;//0.0005f;
+		const float mSpeedDecrease = 0.007f;
+		const float mSpeedMax = 0.015f;
+
+		//OG VALUES:
+		//const float mSpeedIncrease = 0.001f;
+		//const float mSpeedDecrease = 0.0007f;
+		//const float mSpeedMax = 0.03f;
 	};
 }
 

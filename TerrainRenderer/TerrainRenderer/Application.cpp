@@ -17,6 +17,8 @@ namespace TerrainRenderer
 		mTerrainShader = 0;
 		mFrustum = 0;
 		mLight = 0;
+		mSkyDome = 0;
+		mSkyDomeShader = 0;
 	}
 
 	Application::Application(const Application& other)
@@ -300,12 +302,58 @@ namespace TerrainRenderer
 			return false;
 		}
 
+		// Create the sky dome object.
+		mSkyDome = new SkyDome;
+		if (!mSkyDome)
+		{
+			return false;
+		}
+
+		// Initialize the sky dome object.
+		result = mSkyDome->Initialize(mDirect3D->GetDevice());
+		if (!result)
+		{
+			MessageBox(hwnd, L"Could not initialize the sky dome object.", L"Error", MB_OK);
+			return false;
+		}
+
+		// Create the sky dome shader object.
+		mSkyDomeShader = new SkyDomeShader;
+		if (!mSkyDomeShader)
+		{
+			return false;
+		}
+
+		// Initialize the sky dome shader object.
+		result = mSkyDomeShader->Initialize(mDirect3D->GetDevice(), hwnd);
+		if (!result)
+		{
+			MessageBox(hwnd, L"Could not initialize the sky dome shader object.", L"Error", MB_OK);
+			return false;
+		}
+
 		return true;
 	}
 
 
 	void Application::Shutdown()
 	{
+		// Release the sky dome shader object.
+		if (mSkyDomeShader)
+		{
+			mSkyDomeShader->Shutdown();
+			delete mSkyDomeShader;
+			mSkyDomeShader = 0;
+		}
+
+		// Release the sky dome object.
+		if (mSkyDome)
+		{
+			mSkyDome->Shutdown();
+			delete mSkyDome;
+			mSkyDome = 0;
+		}
+
 		//Release the frustum object.
 		if (mFrustum)
 		{
@@ -554,6 +602,7 @@ namespace TerrainRenderer
 	bool Application::RenderGraphics()
 	{
 		D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+		D3DXVECTOR3 cameraPosition;
 		bool result;
 
 
@@ -568,6 +617,36 @@ namespace TerrainRenderer
 		mCamera->GetViewMatrix(viewMatrix);
 		mDirect3D->GetProjectionMatrix(projectionMatrix);
 		mDirect3D->GetOrthoMatrix(orthoMatrix);
+
+		// Get the position of the camera.
+		cameraPosition = mCamera->GetPosition();
+
+		// Translate the sky dome to be centered around the camera position.
+		D3DXMatrixTranslation(&worldMatrix, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+		//Before rendering the sky dome we turn off both back face culling and the Z buffer.
+
+		// Turn off back face culling.
+		mDirect3D->TurnOffCulling();
+
+		// Turn off the Z buffer.
+		mDirect3D->TurnZBufferOff();
+
+		// Render the sky dome using the sky dome shader.
+		mSkyDome->Render(mDirect3D->GetDeviceContext());
+		mSkyDomeShader->Render(mDirect3D->GetDeviceContext(), mSkyDome->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+			mSkyDome->GetApexColor(), mSkyDome->GetCenterColor());
+
+		//Once rendering is complete we turn back face culling and the Z buffer on again and resume rendering the rest of the scene as normal.
+
+		// Turn back face culling back on.
+		mDirect3D->TurnOnCulling();
+
+		// Turn the Z buffer back on.
+		mDirect3D->TurnZBufferOn();
+
+		// Reset the world matrix.
+		mDirect3D->GetWorldMatrix(worldMatrix);
 
 		//Construct the frustum
 		mFrustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
