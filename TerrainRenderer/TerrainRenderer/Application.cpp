@@ -15,6 +15,7 @@ namespace TerrainRenderer
 		mText = 0;
 		mTerrainManager = 0;
 		mTerrainShader = 0;
+		mFrustum = 0;
 		mLight = 0;
 	}
 
@@ -288,12 +289,16 @@ namespace TerrainRenderer
 		}
 
 		// Initialize the light object.
-		//mLight->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
-		//mLight->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-		//mLight->SetDirection(-0.5f, -1.0f, 0.0f);
 		mLight->SetAmbientColor(1.0f, 1.0f, 1.0f, 1.0f);
 		mLight->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 		mLight->SetDirection(-0.5f, -1.0f, 0.0f);
+
+		//Create the frustum object
+		mFrustum = new Frustum;
+		if (!mFrustum)
+		{
+			return false;
+		}
 
 		return true;
 	}
@@ -301,6 +306,13 @@ namespace TerrainRenderer
 
 	void Application::Shutdown()
 	{
+		//Release the frustum object.
+		if (mFrustum)
+		{
+			delete mFrustum;
+			mFrustum = 0;
+		}
+
 		// Release the light object.
 		if (mLight)
 		{
@@ -557,9 +569,30 @@ namespace TerrainRenderer
 		mDirect3D->GetProjectionMatrix(projectionMatrix);
 		mDirect3D->GetOrthoMatrix(orthoMatrix);
 
+		//Construct the frustum
+		mFrustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
+
 		//rendering the terrain buffers
 		mTerrainManager->Render(mDirect3D->GetDeviceContext(), mTerrainShader, worldMatrix, viewMatrix, projectionMatrix,
-			mLight->GetAmbientColor(), mLight->GetDiffuseColor(), mLight->GetDirection());
+			mLight->GetAmbientColor(), mLight->GetDiffuseColor(), mLight->GetDirection(), mFrustum);
+
+		//Set the number of rendered terrain triangles since some were culled
+		if (QUADTREES_ENABLED)
+		{
+			result = mText->SetRenderCount(mTerrainManager->GetDrawCounts(), mDirect3D->GetDeviceContext());
+			if (!result)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			result = mText->SetRenderCount(0, mDirect3D->GetDeviceContext());
+			if (!result)
+			{
+				return false;
+			}
+		}
 
 		// Turn off the Z buffer to begin all 2D rendering.
 		mDirect3D->TurnZBufferOff();

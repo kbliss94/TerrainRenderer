@@ -4,7 +4,7 @@
 namespace TerrainRenderer 
 {
 	Terrain::Terrain(): 
-		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mGrassTexture(nullptr), mSlopeTexture(nullptr), mRockTexture(nullptr), mXOffset(0), mZOffset(0)
+		mVertexBuffer(nullptr), mIndexBuffer(nullptr), mGrassTexture(nullptr), mSlopeTexture(nullptr), mRockTexture(nullptr), mXOffset(0), mZOffset(0), mVertices(nullptr)
 	{
 
 	}
@@ -42,7 +42,7 @@ namespace TerrainRenderer
 		// Normalize the height of the height map.
 		NormalizeHeightMap();
 
-		//////////////////////////////////////////////////////////////////for the texturing
+		//Calculating normals & texture coordinates for the textures
 		result = CalculateNormals();
 		if (!result)
 		{
@@ -57,13 +57,23 @@ namespace TerrainRenderer
 		{
 			return false;
 		}
-		//////////////////////////////////////////////////////////////////
 
 		// Initialize the vertex and index buffer that hold the geometry for the terrain.
-		result = InitializeBuffers(device);
-		if (!result)
+		if (QUADTREES_ENABLED)
 		{
-			return false;
+			result = InitializeVertexBuffer(device);
+			if (!result)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			result = InitializeBuffers(device);
+			if (!result)
+			{
+				return false;
+			}
 		}
 
 		return true;
@@ -103,7 +113,14 @@ namespace TerrainRenderer
 		CalculateNormals();
 		CalculateTextureCoordinates();
 
-		InitializeBuffers(mDevice);
+		if (QUADTREES_ENABLED)
+		{
+			InitializeVertexBuffer(mDevice);
+		}
+		else
+		{
+			InitializeBuffers(mDevice);
+		}
 	}
 
 	void Terrain::UpdateHeightMap()
@@ -161,6 +178,16 @@ namespace TerrainRenderer
 	ID3D11ShaderResourceView* Terrain::GetRockTexture()
 	{
 		return mRockTexture->GetTexture();
+	}
+
+	int Terrain::GetVertexCount()
+	{
+		return mVertexCount;
+	}
+
+	void Terrain::CopyVertexArray(void* vertexArray)
+	{
+		memcpy(vertexArray, mVertices, (sizeof(VertexType) * mVertexCount));
 	}
 
 	bool Terrain::LoadHeightMap(char* filename)
@@ -228,13 +255,7 @@ namespace TerrainRenderer
 		}
 
 		// Create the structure to hold the height map data.
-		//mHeightMap = new HeightMapData[mTerrainWidth * mTerrainHeight];
 		mHeightMap.resize(mTerrainWidth * mTerrainHeight);
-
-		//if (!mHeightMap)
-		//{
-		//	return false;
-		//}
 
 		// Initialize the position in the image data buffer.
 		k = 0;
@@ -738,24 +759,124 @@ namespace TerrainRenderer
 		return true;
 	}
 
+	bool Terrain::InitializeVertexBuffer(ID3D11Device* device)
+	{
+		int index, index1, index2, index3, index4;
+		float tu, tv;
+
+		// Calculate the number of vertices in the terrain mesh.
+		mVertexCount = (mTerrainWidth - 1) * (mTerrainHeight - 1) * 6;
+
+		// Create the vertex array.
+		mVertices = new VertexType[mVertexCount];
+		if (!mVertices)
+		{
+			return false;
+		}
+
+		// Initialize the index to the vertex buffer.
+		index = 0;
+
+		// Load the vertex and index array with the terrain data.
+		for (int j = 0; j < (mTerrainHeight - 1); j++)
+		{
+			for (int i = 0; i < (mTerrainWidth - 1); i++)
+			{
+				index1 = (mTerrainHeight * j) + i;          // Bottom left.
+				index2 = (mTerrainHeight * j) + (i + 1);      // Bottom right.
+				index3 = (mTerrainHeight * (j + 1)) + i;      // Upper left.
+				index4 = (mTerrainHeight * (j + 1)) + (i + 1);  // Upper right.
+
+				// Upper left.
+				tv = mHeightMap[index3].tv;
+
+				// Modify the texture coordinates to cover the top edge.
+				if (tv == 1.0f) { tv = 0.0f; }
+
+				mVertices[index].position = D3DXVECTOR3((mHeightMap[index3].x + mXOffset), mHeightMap[index3].y, (mHeightMap[index3].z + mZOffset));
+				mVertices[index].texture = D3DXVECTOR2(mHeightMap[index3].tu, tv);
+				mVertices[index].normal = D3DXVECTOR3(mHeightMap[index3].nx, mHeightMap[index3].ny, mHeightMap[index3].nz);
+				index++;
+
+				// Upper right.
+				tu = mHeightMap[index4].tu;
+				tv = mHeightMap[index4].tv;
+
+				// Modify the texture coordinates to cover the top and right edge.
+				if (tu == 0.0f) { tu = 1.0f; }
+				if (tv == 1.0f) { tv = 0.0f; }
+
+				mVertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
+				mVertices[index].texture = D3DXVECTOR2(tu, tv);
+				mVertices[index].normal = D3DXVECTOR3(mHeightMap[index4].nx, mHeightMap[index4].ny, mHeightMap[index4].nz);
+				index++;
+
+				// Bottom left.
+				mVertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
+				mVertices[index].texture = D3DXVECTOR2(mHeightMap[index1].tu, mHeightMap[index1].tv);
+				mVertices[index].normal = D3DXVECTOR3(mHeightMap[index1].nx, mHeightMap[index1].ny, mHeightMap[index1].nz);
+				index++;
+
+				// Bottom left.
+				mVertices[index].position = D3DXVECTOR3((mHeightMap[index1].x + mXOffset), mHeightMap[index1].y, (mHeightMap[index1].z + mZOffset));
+				mVertices[index].texture = D3DXVECTOR2(mHeightMap[index1].tu, mHeightMap[index1].tv);
+				mVertices[index].normal = D3DXVECTOR3(mHeightMap[index1].nx, mHeightMap[index1].ny, mHeightMap[index1].nz);
+				index++;
+
+				// Upper right.
+				tu = mHeightMap[index4].tu;
+				tv = mHeightMap[index4].tv;
+
+				// Modify the texture coordinates to cover the top and right edge.
+				if (tu == 0.0f) { tu = 1.0f; }
+				if (tv == 1.0f) { tv = 0.0f; }
+
+				mVertices[index].position = D3DXVECTOR3((mHeightMap[index4].x + mXOffset), mHeightMap[index4].y, (mHeightMap[index4].z + mZOffset));
+				mVertices[index].texture = D3DXVECTOR2(tu, tv);
+				mVertices[index].normal = D3DXVECTOR3(mHeightMap[index4].nx, mHeightMap[index4].ny, mHeightMap[index4].nz);
+				index++;
+
+				// Bottom right.
+				tu = mHeightMap[index2].tu;
+
+				// Modify the texture coordinates to cover the right edge.
+				if (tu == 0.0f) { tu = 1.0f; }
+
+				mVertices[index].position = D3DXVECTOR3((mHeightMap[index2].x + mXOffset), mHeightMap[index2].y, (mHeightMap[index2].z + mZOffset));
+				mVertices[index].texture = D3DXVECTOR2(tu, mHeightMap[index2].tv);
+				mVertices[index].normal = D3DXVECTOR3(mHeightMap[index2].nx, mHeightMap[index2].ny, mHeightMap[index2].nz);
+				index++;
+			}
+		}
+
+		return true;
+	}
 
 	void Terrain::ShutdownBuffers()
 	{
-		// Release the index buffer.
-		if (mIndexBuffer)
+		if (QUADTREES_ENABLED)
 		{
-			mIndexBuffer->Release();
-			mIndexBuffer = 0;
+			if (mVertices)
+			{
+				delete[] mVertices;
+				mVertices = nullptr;
+			}
 		}
-
-		// Release the vertex buffer.
-		if (mVertexBuffer)
+		else
 		{
-			mVertexBuffer->Release();
-			mVertexBuffer = 0;
+			if (mIndexBuffer)
+			{
+				mIndexBuffer->Release();
+				mIndexBuffer = 0;
+			}
+
+			if (mVertexBuffer)
+			{
+				mVertexBuffer->Release();
+				mVertexBuffer = 0;
+			}
 		}
 	}
-
 
 	void Terrain::RenderBuffers(ID3D11DeviceContext* context)
 	{

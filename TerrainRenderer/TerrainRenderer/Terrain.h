@@ -21,7 +21,6 @@ namespace TerrainRenderer
 	class Terrain
 	{
 	public:
-	//private:
 		struct VertexType
 		{
 			D3DXVECTOR3 position;
@@ -102,9 +101,8 @@ namespace TerrainRenderer
 		ID3D11ShaderResourceView* GetSlopeTexture();
 		ID3D11ShaderResourceView* GetRockTexture();
 
-		//void NormalizeHeightMap();
-		//bool CalculateNormals();
-		//void CalculateTextureCoordinates();
+		int GetVertexCount();
+		void CopyVertexArray(void* vertexArray);
 
 	private:
 		bool LoadHeightMap(char* filename);
@@ -117,6 +115,10 @@ namespace TerrainRenderer
 		void ReleaseTextures();
 
 		bool InitializeBuffers(ID3D11Device* device);
+
+		//!Used when implementing quad trees in place of InitializeBuffers
+		bool InitializeVertexBuffer(ID3D11Device* device);
+
 		void ShutdownBuffers();
 		void RenderBuffers(ID3D11DeviceContext* context);
 
@@ -139,6 +141,7 @@ namespace TerrainRenderer
 		const float mVertexColorAlpha = 1.0f;
 
 		Texture* mGrassTexture, *mSlopeTexture, *mRockTexture;
+		VertexType* mVertices;
 
 		friend class cereal::access;
 	};

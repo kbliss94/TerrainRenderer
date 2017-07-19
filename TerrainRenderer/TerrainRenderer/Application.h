@@ -11,6 +11,7 @@ const bool STITCHING_ENABLED = true;
 const bool GENERATION_ENABLED = true;
 const bool SCALING_ENABLED = true;
 const bool RANDOM_GENERATION = false;
+const bool QUADTREES_ENABLED = true;
 
 #include "Input.h"
 #include "DirectX3D.h"
@@ -26,6 +27,7 @@ const bool RANDOM_GENERATION = false;
 #include "HeightMap.h"
 #include "TerrainShader.h"
 #include "Light.h"
+#include "Frustum.h"
 #include "noiseutils.h"
 
 #include <random>
@@ -62,6 +64,7 @@ namespace TerrainRenderer
 		Text* mText;
 		TerrainManager* mTerrainManager;
 		TerrainShader* mTerrainShader;
+		Frustum* mFrustum;
 		Light* mLight;
 
 		const int mNumStartUpMaps = 9;

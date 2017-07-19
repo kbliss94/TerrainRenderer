@@ -15,6 +15,7 @@ namespace TerrainRenderer
 		m_sentence8 = 0;
 		m_sentence9 = 0;
 		m_sentence10 = 0;
+		m_sentence11 = 0;
 	}
 
 
@@ -125,6 +126,13 @@ namespace TerrainRenderer
 			return false;
 		}
 
+		// Initialize the eleventh sentence.
+		result = InitializeSentence(&m_sentence11, 32, device);
+		if (!result)
+		{
+			return false;
+		}
+
 		return true;
 	}
 
@@ -150,6 +158,7 @@ namespace TerrainRenderer
 		ReleaseSentence(&m_sentence8);
 		ReleaseSentence(&m_sentence9);
 		ReleaseSentence(&m_sentence10);
+		ReleaseSentence(&m_sentence11);
 
 		return;
 	}
@@ -216,6 +225,12 @@ namespace TerrainRenderer
 		}
 
 		result = RenderSentence(m_sentence10, deviceContext, FontShader, worldMatrix, orthoMatrix);
+		if (!result)
+		{
+			return false;
+		}
+
+		result = RenderSentence(m_sentence11, deviceContext, FontShader, worldMatrix, orthoMatrix);
 		if (!result)
 		{
 			return false;
@@ -659,6 +674,35 @@ namespace TerrainRenderer
 		strcat_s(dataString, tempString);
 
 		result = UpdateSentence(m_sentence10, dataString, 10, 250, 0.0f, 1.0f, 0.0f, deviceContext);
+		if (!result)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool Text::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
+	{
+		char tempString[16];
+		char renderString[32];
+		bool result;
+
+		// Truncate the render count if it gets to large to prevent a buffer overflow.
+		if (count > 999999999)
+		{
+			count = 999999999;
+		}
+
+		// Convert the cpu integer to string format.
+		_itoa_s(count, tempString, 10);
+
+		// Setup the cpu string.
+		strcpy_s(renderString, "Render Count: ");
+		strcat_s(renderString, tempString);
+
+		// Update the sentence vertex buffer with the new string information.
+		result = UpdateSentence(m_sentence11, renderString, 10, 290, 0.0f, 1.0f, 0.0f, deviceContext);
 		if (!result)
 		{
 			return false;

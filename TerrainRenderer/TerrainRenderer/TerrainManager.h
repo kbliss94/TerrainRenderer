@@ -6,6 +6,7 @@
 #include "Position.h"
 #include "EasyBMP.h"
 #include "HeightMap.h"
+#include "QuadTree.h"
 
 //below is used for cereal
 #include <cereal/archives/binary.hpp>
@@ -40,7 +41,7 @@ namespace TerrainRenderer
 			WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename, WCHAR* rockTextureFilename);
 		void Shutdown();
 		void Render(ID3D11DeviceContext* context, TerrainShader* terrainShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, D3DXVECTOR4 ambientColor,
-			D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection);
+			D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, Frustum* frustum);
 
 		//!Generates new chunks or deserializes chunks as the camera moves around
 		void GenerateChunks(Position* position);
@@ -57,6 +58,8 @@ namespace TerrainRenderer
 		*/
 		bool Deserialize(int gridX, int gridY, std::shared_ptr<Terrain>& terrainChunk);
 
+		int GetDrawCounts();
+
 	private:
 		void UpdateXPositionLeft();
 		void UpdateXPositionRight();
@@ -65,6 +68,7 @@ namespace TerrainRenderer
 
 		void UpdateChunkPositions();
 		void UpdateCurrentChunk(float x, float z);
+		void UpdateQuadTrees();
 
 		void ResolveMoveLeftSeams();
 		void ResolveMoveRightSeams();
@@ -116,6 +120,10 @@ namespace TerrainRenderer
 		vector<std::shared_ptr<Terrain>> mGridLeftColumn;
 		vector<std::shared_ptr<Terrain>> mGridMiddleColumn;
 		vector<std::shared_ptr<Terrain>> mGridRightColumn;
+
+		vector<std::shared_ptr<QuadTree>> mQuadBottomRow;
+		vector<std::shared_ptr<QuadTree>> mQuadMiddleRow;
+		vector<std::shared_ptr<QuadTree>> mQuadTopRow;
 
 		vector<ChunkOffset>* mBottomRowOffsets;
 		vector<ChunkOffset>* mMiddleRowOffsets;

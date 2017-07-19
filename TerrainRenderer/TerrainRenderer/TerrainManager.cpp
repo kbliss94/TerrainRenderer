@@ -70,6 +70,18 @@ namespace TerrainRenderer
 		mGridRightColumn.push_back(mGridTopRow[2]);
 		mGridRightColumn.push_back(mGridMiddleRow[2]);
 		mGridRightColumn.push_back(mGridBottomRow[2]);
+
+		//setting up quad trees
+		mQuadBottomRow.resize(mNumGridRows);
+		mQuadMiddleRow.resize(mNumGridRows);
+		mQuadTopRow.resize(mNumGridRows);
+
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			mQuadBottomRow[i] = make_shared<QuadTree>();
+			mQuadMiddleRow[i] = make_shared<QuadTree>();
+			mQuadTopRow[i] = make_shared<QuadTree>();
+		}
 	}
 
 	TerrainManager::TerrainManager(const TerrainManager& rhs)
@@ -133,6 +145,7 @@ namespace TerrainRenderer
 
 		int filenameIndex = 0;
 
+		//initializing the terrain chunks
 		if (mHeightMapFilenames.size() == mNumGridRows*mNumGridRows)
 		{
 			for (int i = 0; i < mNumGridRows; ++i)
@@ -152,6 +165,17 @@ namespace TerrainRenderer
 			}
 		}
 
+		//initializing the quad trees
+		if (QUADTREES_ENABLED)
+		{
+			for (int i = 0; i < mNumGridRows; ++i)
+			{
+				(mQuadBottomRow[i])->Initialize(mGridBottomRow[i], device);
+				(mQuadMiddleRow[i])->Initialize(mGridMiddleRow[i], device);
+				(mQuadTopRow[i])->Initialize(mGridTopRow[i], device);
+			}
+		}
+
 		return true;
 	}
 
@@ -161,21 +185,41 @@ namespace TerrainRenderer
 	}
 
 	void TerrainManager::Render(ID3D11DeviceContext* context, TerrainShader* terrainShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection,
-		D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection)
+		D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, Frustum* frustum)
 	{
-		for (int i = 0; i < mNumGridRows; ++i)
+		if (QUADTREES_ENABLED)
 		{
-			(mGridBottomRow[i])->Render(context);
-			terrainShader->Render(context, mGridBottomRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection,
-				mGridBottomRow[i]->GetGrassTexture(), mGridBottomRow[i]->GetSlopeTexture(), mGridBottomRow[i]->GetRockTexture());
+			for (int i = 0; i < mNumGridRows; ++i)
+			{
+				terrainShader->SetShaderParameters(context, world, view, projection, ambientColor, diffuseColor, lightDirection,
+					mGridBottomRow[i]->GetGrassTexture(), mGridBottomRow[i]->GetSlopeTexture(), mGridBottomRow[i]->GetRockTexture());
+				mQuadBottomRow[i]->Render(frustum, context, terrainShader);
 
-			(mGridMiddleRow[i])->Render(context);
-			terrainShader->Render(context, mGridMiddleRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection,
-				mGridMiddleRow[i]->GetGrassTexture(), mGridMiddleRow[i]->GetSlopeTexture(), mGridMiddleRow[i]->GetRockTexture());
+				terrainShader->SetShaderParameters(context, world, view, projection, ambientColor, diffuseColor, lightDirection,
+					mGridMiddleRow[i]->GetGrassTexture(), mGridMiddleRow[i]->GetSlopeTexture(), mGridMiddleRow[i]->GetRockTexture());
+				mQuadMiddleRow[i]->Render(frustum, context, terrainShader);
 
-			(mGridTopRow[i])->Render(context);
-			terrainShader->Render(context, mGridTopRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection,
-				mGridTopRow[i]->GetGrassTexture(), mGridTopRow[i]->GetSlopeTexture(), mGridTopRow[i]->GetRockTexture());
+				terrainShader->SetShaderParameters(context, world, view, projection, ambientColor, diffuseColor, lightDirection,
+					mGridTopRow[i]->GetGrassTexture(), mGridTopRow[i]->GetSlopeTexture(), mGridTopRow[i]->GetRockTexture());
+				mQuadTopRow[i]->Render(frustum, context, terrainShader);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < mNumGridRows; ++i)
+			{
+				(mGridBottomRow[i])->Render(context);
+				terrainShader->Render(context, mGridBottomRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection,
+					mGridBottomRow[i]->GetGrassTexture(), mGridBottomRow[i]->GetSlopeTexture(), mGridBottomRow[i]->GetRockTexture());
+
+				(mGridMiddleRow[i])->Render(context);
+				terrainShader->Render(context, mGridMiddleRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection,
+					mGridMiddleRow[i]->GetGrassTexture(), mGridMiddleRow[i]->GetSlopeTexture(), mGridMiddleRow[i]->GetRockTexture());
+
+				(mGridTopRow[i])->Render(context);
+				terrainShader->Render(context, mGridTopRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection,
+					mGridTopRow[i]->GetGrassTexture(), mGridTopRow[i]->GetSlopeTexture(), mGridTopRow[i]->GetRockTexture());
+			}
 		}
 	}
 
@@ -231,6 +275,11 @@ namespace TerrainRenderer
 			//moving map
 			UpdateChunkPositions();
 
+			if (QUADTREES_ENABLED)
+			{
+				UpdateQuadTrees();
+			}
+
 			//updating current chunk
 			UpdateCurrentChunk(xPos, zPos);
 		}
@@ -268,6 +317,20 @@ namespace TerrainRenderer
 		}
 
 		return false;
+	}
+
+	int TerrainManager::GetDrawCounts()
+	{
+		int drawCountTotal = 0;
+
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			drawCountTotal += mQuadBottomRow[i]->GetDrawCount();
+			drawCountTotal += mQuadMiddleRow[i]->GetDrawCount();
+			drawCountTotal += mQuadTopRow[i]->GetDrawCount();
+		}
+
+		return drawCountTotal;
 	}
 
 	void TerrainManager::UpdateXPositionLeft()
@@ -454,6 +517,16 @@ namespace TerrainRenderer
 
 				mCurrentChunkBorders = { (float)(*mBottomRowOffsets)[i].z, (float)((*mBottomRowOffsets)[i].z + mChunkOffset), (float)(*mBottomRowOffsets)[i].x, (float)((*mBottomRowOffsets)[i].x + mChunkOffset) };
 			}
+		}
+	}
+
+	void TerrainManager::UpdateQuadTrees()
+	{
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			mQuadBottomRow[i]->UpdateTerrainData();
+			mQuadMiddleRow[i]->UpdateTerrainData();
+			mQuadTopRow[i]->UpdateTerrainData();
 		}
 	}
 
