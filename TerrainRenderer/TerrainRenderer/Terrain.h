@@ -102,6 +102,10 @@ namespace TerrainRenderer
 		ID3D11ShaderResourceView* GetSlopeTexture();
 		ID3D11ShaderResourceView* GetRockTexture();
 
+		//void NormalizeHeightMap();
+		//bool CalculateNormals();
+		//void CalculateTextureCoordinates();
+
 	private:
 		bool LoadHeightMap(char* filename);
 		void NormalizeHeightMap();

@@ -182,91 +182,56 @@ namespace TerrainRenderer
 	void TerrainManager::GenerateChunks(Position* position)
 	{
 		float xPos, yPos, zPos;
-		
 		position->GetPosition(xPos, yPos, zPos);
+		bool chunksGenerated = false;
 
 		if (xPos < mCurrentChunkBorders.minX)
 		{
 			//move left
 			UpdateXPositionLeft();
 
+			//stitches together chunks that have been added
 			ResolveMoveLeftSeams();
 
-			//doing this updates the rows' maps to their new maps
-			for (int i = 0; i < mNumGridRows; ++i)
-			{
-				mGridBottomRow[i]->UpdateHeightMap();
-				mGridMiddleRow[i]->UpdateHeightMap();
-				mGridTopRow[i]->UpdateHeightMap();
-			}
-
-			//moves the map to the left
-			UpdateChunkPositions();
-
-			//update current chunk
-			UpdateCurrentChunk(xPos, zPos);
+			chunksGenerated = true;
 		}
 		else if (xPos > mCurrentChunkBorders.maxX)
 		{
 			//move right
 			UpdateXPositionRight();
 
+			//stitches together chunks that have been added
 			ResolveMoveRightSeams();
 
-			//doing this updates the rows' maps to their new maps
-			for (int i = 0; i < mNumGridRows; ++i)
-			{
-				mGridBottomRow[i]->UpdateHeightMap();
-				mGridMiddleRow[i]->UpdateHeightMap();
-				mGridTopRow[i]->UpdateHeightMap();
-			}
-
-			//moves the map to the right
-			UpdateChunkPositions();
-
-			//update current chunk
-			UpdateCurrentChunk(xPos, zPos);
+			chunksGenerated = true;
 		}
 		else if (zPos > mCurrentChunkBorders.maxZ)
 		{
 			//move up
 			UpdateZPositionUp();
 
+			//stitches together chunks that have been added
 			ResolveMoveUpSeams();
 
-			//doing this updates the rows' maps to their new maps
-			for (int i = 0; i < mNumGridRows; ++i)
-			{
-				mGridBottomRow[i]->UpdateHeightMap();
-				mGridMiddleRow[i]->UpdateHeightMap();
-				mGridTopRow[i]->UpdateHeightMap();
-			}
-
-			//moves the map upwards
-			UpdateChunkPositions();
-
-			//update current chunk information
-			UpdateCurrentChunk(xPos, zPos);
+			chunksGenerated = true;
 		}
 		else if (zPos < mCurrentChunkBorders.minZ)
 		{
 			//move down
 			UpdateZPositionDown();
 
+			//stitches together chunks that have been added
 			ResolveMoveDownSeams();
 
-			//doing this updates the rows' maps to their new maps
-			for (int i = 0; i < mNumGridRows; ++i)
-			{
-				mGridBottomRow[i]->UpdateHeightMap();
-				mGridMiddleRow[i]->UpdateHeightMap();
-				mGridTopRow[i]->UpdateHeightMap();
-			}
+			chunksGenerated = true;
+		}
 
-			//move the map down
+		if (chunksGenerated)
+		{
+			//moving map
 			UpdateChunkPositions();
 
-			//update current chunk
+			//updating current chunk
 			UpdateCurrentChunk(xPos, zPos);
 		}
 	}
@@ -319,12 +284,10 @@ namespace TerrainRenderer
 		{
 			//serializing the right column & setting its height map & grid position equal to the middle column's height map & grid position
 			Serialize(mGridRightColumn[i]);
-			SetNewHeightMap(mGridRightColumn[i]->GetHeightMapFilename(), mGridMiddleColumn[i]->GetHeightMapFilename());
-			mGridRightColumn[i]->SetGridPosition(mGridMiddleColumn[i]->GetGridPositionX(), mGridMiddleColumn[i]->GetGridPositionY());
+			mGridRightColumn[i]->SetHeightMapInfo(mGridMiddleColumn[i]);
 
 			//setting the middle column height map & grid position equal to the left column height map & grid position
-			SetNewHeightMap(mGridMiddleColumn[i]->GetHeightMapFilename(), mGridLeftColumn[i]->GetHeightMapFilename());
-			mGridMiddleColumn[i]->SetGridPosition(mGridLeftColumn[i]->GetGridPositionX(), mGridLeftColumn[i]->GetGridPositionY());
+			mGridMiddleColumn[i]->SetHeightMapInfo(mGridLeftColumn[i]);
 
 			//updating the grid positions for the left column
 			mGridLeftColumn[i]->SetGridPosition((mGridLeftColumn[0]->GetGridPositionX() - 1), mGridLeftColumn[0]->GetGridPositionY());
@@ -336,6 +299,9 @@ namespace TerrainRenderer
 			if (!Deserialize(mGridLeftColumn[i]->GetGridPositionX(), mGridLeftColumn[i]->GetGridPositionY(), mGridLeftColumn[i]))
 			{
 				GenerateNewHeightMap(mGridLeftColumn[i]->GetHeightMapFilename());
+
+				//loading in the data for the new height map
+				mGridLeftColumn[i]->UpdateHeightMap();
 			}
 		}
 	}
@@ -354,12 +320,10 @@ namespace TerrainRenderer
 		{
 			//serializing the left column & setting its height map & grid position equal to the middle column height map & grid position
 			Serialize(mGridLeftColumn[i]);
-			SetNewHeightMap(mGridLeftColumn[i]->GetHeightMapFilename(), mGridMiddleColumn[i]->GetHeightMapFilename());
-			mGridLeftColumn[i]->SetGridPosition(mGridMiddleColumn[i]->GetGridPositionX(), mGridMiddleColumn[i]->GetGridPositionY());
+			mGridLeftColumn[i]->SetHeightMapInfo(mGridMiddleColumn[i]);
 
 			//setting the middle column height map & grid position equal to the right column height map & grid position
-			SetNewHeightMap(mGridMiddleColumn[i]->GetHeightMapFilename(), mGridRightColumn[i]->GetHeightMapFilename());
-			mGridMiddleColumn[i]->SetGridPosition(mGridRightColumn[i]->GetGridPositionX(), mGridRightColumn[i]->GetGridPositionY());
+			mGridMiddleColumn[i]->SetHeightMapInfo(mGridRightColumn[i]);
 
 			//updating the grid positions for the right column
 			mGridRightColumn[i]->SetGridPosition((mGridRightColumn[i]->GetGridPositionX() + 1), mGridRightColumn[i]->GetGridPositionY());
@@ -371,6 +335,9 @@ namespace TerrainRenderer
 			if (!Deserialize(mGridRightColumn[i]->GetGridPositionX(), mGridRightColumn[i]->GetGridPositionY(), mGridRightColumn[i]))
 			{
 				GenerateNewHeightMap(mGridRightColumn[i]->GetHeightMapFilename());
+
+				//loading in the new height map data
+				mGridRightColumn[i]->UpdateHeightMap();
 			}
 		}
 	}
@@ -389,12 +356,10 @@ namespace TerrainRenderer
 		{
 			//serializing the bottom row & setting its height map & grid position equal to the middle row height map & grid position
 			Serialize(mGridBottomRow[i]);
-			SetNewHeightMap(mGridBottomRow[i]->GetHeightMapFilename(), mGridMiddleRow[i]->GetHeightMapFilename());
-			mGridBottomRow[i]->SetGridPosition(mGridMiddleRow[i]->GetGridPositionX(), mGridMiddleRow[i]->GetGridPositionY());
+			mGridBottomRow[i]->SetHeightMapInfo(mGridMiddleRow[i]);
 
 			//setting the middle row height map & grid position equal to the top row height map & grid position
-			SetNewHeightMap(mGridMiddleRow[i]->GetHeightMapFilename(), mGridTopRow[i]->GetHeightMapFilename());
-			mGridMiddleRow[i]->SetGridPosition(mGridTopRow[i]->GetGridPositionX(), mGridTopRow[i]->GetGridPositionY());
+			mGridMiddleRow[i]->SetHeightMapInfo(mGridTopRow[i]);
 
 			//updating the grid positions for the top row
 			mGridTopRow[i]->SetGridPosition(mGridTopRow[i]->GetGridPositionX(), (mGridTopRow[i]->GetGridPositionY() + 1));
@@ -407,6 +372,9 @@ namespace TerrainRenderer
 			if (!Deserialize(mGridTopRow[i]->GetGridPositionX(), mGridTopRow[i]->GetGridPositionY(), mGridTopRow[i]))
 			{
 				GenerateNewHeightMap(mGridTopRow[i]->GetHeightMapFilename());
+
+				//loading in the new height map
+				mGridTopRow[i]->UpdateHeightMap();
 			}
 		}
 	}
@@ -425,12 +393,10 @@ namespace TerrainRenderer
 		{
 			//serialize the top row & set its height map & grid position equal to the middle row height map & grid position
 			Serialize(mGridTopRow[i]);
-			SetNewHeightMap(mGridTopRow[i]->GetHeightMapFilename(), mGridMiddleRow[i]->GetHeightMapFilename());
-			mGridTopRow[i]->SetGridPosition(mGridMiddleRow[i]->GetGridPositionX(), mGridMiddleRow[i]->GetGridPositionY());
+			mGridTopRow[i]->SetHeightMapInfo(mGridMiddleRow[i]);
 
 			//setting the middle row height map & grid position equal to the bottom row height map & grid position
-			SetNewHeightMap(mGridMiddleRow[i]->GetHeightMapFilename(), mGridBottomRow[i]->GetHeightMapFilename());
-			mGridMiddleRow[i]->SetGridPosition(mGridBottomRow[i]->GetGridPositionX(), mGridBottomRow[i]->GetGridPositionY());
+			mGridMiddleRow[i]->SetHeightMapInfo(mGridBottomRow[i]);
 
 			//updating the grid positions for the bottom row
 			mGridBottomRow[i]->SetGridPosition(mGridBottomRow[i]->GetGridPositionX(), (mGridBottomRow[i]->GetGridPositionY() - 1));
@@ -443,7 +409,9 @@ namespace TerrainRenderer
 			if (!Deserialize(mGridBottomRow[i]->GetGridPositionX(), mGridBottomRow[i]->GetGridPositionY(), mGridBottomRow[i]))
 			{
 				GenerateNewHeightMap(mGridBottomRow[i]->GetHeightMapFilename());
+
 				//need to load in the data for the new height map
+				mGridBottomRow[i]->UpdateHeightMap();
 			}
 		}
 	}
@@ -491,42 +459,42 @@ namespace TerrainRenderer
 
 	void TerrainManager::ResolveMoveLeftSeams()
 	{
-		ResolveVerticalSeam(mGridBottomRow[0]->GetHeightMapFilename(), mGridBottomRow[1]->GetHeightMapFilename());
-		ResolveVerticalSeam(mGridMiddleRow[0]->GetHeightMapFilename(), mGridMiddleRow[1]->GetHeightMapFilename());
-		ResolveVerticalSeam(mGridTopRow[0]->GetHeightMapFilename(), mGridTopRow[1]->GetHeightMapFilename());
+		StitchHorizontalSeam(mGridMiddleRow[0]->GetHeightMap(), mGridBottomRow[0]->GetHeightMap());
+		StitchHorizontalSeam(mGridTopRow[0]->GetHeightMap(), mGridMiddleRow[0]->GetHeightMap());
 
-		ResolveHorizontalSeam(mGridMiddleRow[0]->GetHeightMapFilename(), mGridBottomRow[0]->GetHeightMapFilename());
-		ResolveHorizontalSeam(mGridTopRow[0]->GetHeightMapFilename(), mGridMiddleRow[0]->GetHeightMapFilename());
+		StitchVerticalSeam(mGridBottomRow[0]->GetHeightMap(), mGridBottomRow[1]->GetHeightMap());
+		StitchVerticalSeam(mGridMiddleRow[0]->GetHeightMap(), mGridMiddleRow[1]->GetHeightMap());
+		StitchVerticalSeam(mGridTopRow[0]->GetHeightMap(), mGridTopRow[1]->GetHeightMap());
 	}
 
 	void TerrainManager::ResolveMoveRightSeams()
 	{
-		ResolveVerticalSeam(mGridBottomRow[1]->GetHeightMapFilename(), mGridBottomRow[2]->GetHeightMapFilename());
-		ResolveVerticalSeam(mGridMiddleRow[1]->GetHeightMapFilename(), mGridMiddleRow[2]->GetHeightMapFilename());
-		ResolveVerticalSeam(mGridTopRow[1]->GetHeightMapFilename(), mGridTopRow[2]->GetHeightMapFilename());
+		StitchVerticalSeam(mGridBottomRow[1]->GetHeightMap(), mGridBottomRow[2]->GetHeightMap());
+		StitchVerticalSeam(mGridMiddleRow[1]->GetHeightMap(), mGridMiddleRow[2]->GetHeightMap());
+		StitchVerticalSeam(mGridTopRow[1]->GetHeightMap(), mGridTopRow[2]->GetHeightMap());
 
-		ResolveHorizontalSeam(mGridMiddleRow[2]->GetHeightMapFilename(), mGridBottomRow[2]->GetHeightMapFilename());
-		ResolveHorizontalSeam(mGridTopRow[2]->GetHeightMapFilename(), mGridMiddleRow[2]->GetHeightMapFilename());
+		StitchHorizontalSeam(mGridMiddleRow[2]->GetHeightMap(), mGridBottomRow[2]->GetHeightMap());
+		StitchHorizontalSeam(mGridTopRow[2]->GetHeightMap(), mGridMiddleRow[2]->GetHeightMap());
 	}
 
 	void TerrainManager::ResolveMoveUpSeams()
 	{
-		ResolveVerticalSeam(mGridTopRow[0]->GetHeightMapFilename(), mGridTopRow[1]->GetHeightMapFilename());
-		ResolveVerticalSeam(mGridTopRow[1]->GetHeightMapFilename(), mGridTopRow[2]->GetHeightMapFilename());
+		StitchVerticalSeam(mGridTopRow[0]->GetHeightMap(), mGridTopRow[1]->GetHeightMap());
+		StitchVerticalSeam(mGridTopRow[1]->GetHeightMap(), mGridTopRow[2]->GetHeightMap());
 
-		ResolveHorizontalSeam(mGridTopRow[0]->GetHeightMapFilename(), mGridMiddleRow[0]->GetHeightMapFilename());
-		ResolveHorizontalSeam(mGridTopRow[1]->GetHeightMapFilename(), mGridMiddleRow[1]->GetHeightMapFilename());
-		ResolveHorizontalSeam(mGridTopRow[2]->GetHeightMapFilename(), mGridMiddleRow[2]->GetHeightMapFilename());
+		StitchHorizontalSeam(mGridTopRow[0]->GetHeightMap(), mGridMiddleRow[0]->GetHeightMap());
+		StitchHorizontalSeam(mGridTopRow[1]->GetHeightMap(), mGridMiddleRow[1]->GetHeightMap());
+		StitchHorizontalSeam(mGridTopRow[2]->GetHeightMap(), mGridMiddleRow[2]->GetHeightMap());
 	}
 
 	void TerrainManager::ResolveMoveDownSeams()
 	{
-		ResolveVerticalSeam(mGridBottomRow[0]->GetHeightMapFilename(), mGridBottomRow[1]->GetHeightMapFilename());
-		ResolveVerticalSeam(mGridBottomRow[1]->GetHeightMapFilename(), mGridBottomRow[2]->GetHeightMapFilename());
+		StitchVerticalSeam(mGridBottomRow[0]->GetHeightMap(), mGridBottomRow[1]->GetHeightMap());
+		StitchVerticalSeam(mGridBottomRow[1]->GetHeightMap(), mGridBottomRow[2]->GetHeightMap());
 
-		ResolveHorizontalSeam(mGridMiddleRow[0]->GetHeightMapFilename(), mGridBottomRow[0]->GetHeightMapFilename());
-		ResolveHorizontalSeam(mGridMiddleRow[1]->GetHeightMapFilename(), mGridBottomRow[1]->GetHeightMapFilename());
-		ResolveHorizontalSeam(mGridMiddleRow[2]->GetHeightMapFilename(), mGridBottomRow[2]->GetHeightMapFilename());
+		StitchHorizontalSeam(mGridMiddleRow[0]->GetHeightMap(), mGridBottomRow[0]->GetHeightMap());
+		StitchHorizontalSeam(mGridMiddleRow[1]->GetHeightMap(), mGridBottomRow[1]->GetHeightMap());
+		StitchHorizontalSeam(mGridMiddleRow[2]->GetHeightMap(), mGridBottomRow[2]->GetHeightMap());
 	}
 
 	void TerrainManager::ResolveVerticalSeam(const char* leftChunkFilename, const char* rightChunkFilename)
@@ -659,6 +627,113 @@ namespace TerrainRenderer
 
 		bottomChunk.WriteToFile(bottomChunkFilename);
 		topChunk.WriteToFile(topChunkFilename);
+	}
+
+	void TerrainManager::StitchVerticalSeam(vector<Terrain::HeightMapData>& leftChunk, vector<Terrain::HeightMapData>& rightChunk)
+	{
+		//building the border for the right hand side
+		float weightChange = (float)(1.0f / mBorderWidth);
+		float leftWeight = 1.0f;
+		float rightWeight = 0.0f;
+
+		int leftOffset = 63;
+
+		for (int i = 0; i < mBorderWidth; ++i)
+		{
+			for (int j = 0; j < mHMHeight * mHMHeight; j += mHMHeight)
+			{
+				if (i == 0)
+				{
+					rightChunk[i + j].y = leftChunk[leftOffset + j].y;
+				}
+				else
+				{
+					rightChunk[i + j].y = (rightChunk[(i - 1) + j].y * leftWeight) + (rightChunk[i + j].y * rightWeight);
+				}
+
+			}
+
+			leftWeight -= weightChange;
+			rightWeight += weightChange;
+		}
+
+		//building the border for the left hand side
+		leftWeight = 0.0f;
+		rightWeight = 1.0f;
+
+		int rightOffset = 0;
+
+		for (int i = (mHMHeight - 1); i >= (mHMHeight - mBorderWidth); --i)
+		{
+			for (int j = 0; j < mHMHeight * mHMHeight; j += mHMHeight)
+			{
+				if (i == (mHMHeight - 1))
+				{
+					leftChunk[i + j].y = rightChunk[rightOffset + j].y;
+				}
+				else
+				{
+					leftChunk[i + j].y = (leftChunk[i + j].y * leftWeight) + (leftChunk[(i + 1) + j].y * rightWeight);
+				}
+
+			}
+
+			leftWeight += weightChange;
+			rightWeight -= weightChange;
+		}
+	}
+
+	void TerrainManager::StitchHorizontalSeam(vector<Terrain::HeightMapData>& topChunk, vector<Terrain::HeightMapData>& bottomChunk)
+	{
+		//building the border for the top chunk
+		float weightChange = (float)(1.0f / mBorderWidth);
+		float bottomWeight = 1.0f;
+		float topWeight = 0.0f;
+
+		int bottomOffset = mHMHeight * (mHMHeight - 1);	
+
+		for (int i = 0; i < mHMHeight; ++i)
+		{
+			topChunk[i].y = bottomChunk[bottomOffset].y;
+			++bottomOffset;
+		}
+
+		for (int i = mHMHeight; i < mHMHeight * mBorderWidth; ++i)
+		{
+			if (i % mHMHeight == 0)
+			{
+				bottomWeight -= weightChange;
+				topWeight += weightChange;
+			}
+
+			topChunk[i].y = (topChunk[i - mHMHeight].y * bottomWeight) + (topChunk[i].y * topWeight);
+		}
+
+		//building the border for the bottom chunk
+		bottomWeight = 0.0f;
+		topWeight = 1.0f;
+
+		int topOffset = 0;
+
+		for (int i = mHMHeight * (mHMHeight - 1); i < (mHMHeight * mHMHeight); ++i)
+		{
+			bottomChunk[i].y = topChunk[topOffset].y;
+			++topOffset;
+		}
+
+		bottomWeight += weightChange;
+		topWeight -= weightChange;
+
+		for (int i = (mHMHeight * (mHMHeight - 1) - 1); i >= (mHMHeight * (mHMHeight - mBorderWidth)); --i)
+		{
+			if (i % mHMHeight == 0)
+			{
+				bottomWeight += weightChange;
+				topWeight -= weightChange;
+			}
+			
+			bottomChunk[i].y = (bottomChunk[i].y * bottomWeight) + (bottomChunk[i + mHMHeight].y * topWeight);
+		}
 	}
 	
 	//Partitioning the large scale map into 9 smaller 64x64 chunks

@@ -71,8 +71,13 @@ namespace TerrainRenderer
 		void ResolveMoveUpSeams();
 		void ResolveMoveDownSeams();
 
+		//!Stitches chunks together while they're in .bmp form
 		void ResolveVerticalSeam(const char* leftChunkFilename, const char* rightChunkFilename);
 		void ResolveHorizontalSeam(const char* topChunkFilename, const char* bottomChunkFilename);
+
+		//!Stitches chunks together after they've been loaded in & the data is in a vector
+		void StitchVerticalSeam(vector<Terrain::HeightMapData>& leftChunk, vector<Terrain::HeightMapData>& rightChunk);
+		void StitchHorizontalSeam(vector<Terrain::HeightMapData>& topChunk, vector<Terrain::HeightMapData>& bottomChunk);
 
 		void PartitionScalingMap();
 		void GenerateNewHeightMap(char* filename);
