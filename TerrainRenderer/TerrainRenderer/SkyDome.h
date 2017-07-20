@@ -35,6 +35,7 @@ namespace TerrainRenderer
 		int GetIndexCount();
 		D3DXVECTOR4 GetApexColor();
 		D3DXVECTOR4 GetCenterColor();
+		D3DXVECTOR4 GetBaseColor();
 
 	private:
 		bool LoadSkyDomeModel(char*);
@@ -48,7 +49,7 @@ namespace TerrainRenderer
 		ModelType* mModel;
 		int mVertexCount, mIndexCount;
 		ID3D11Buffer *mVertexBuffer, *mIndexBuffer;
-		D3DXVECTOR4 mApexColor, mCenterColor;
+		D3DXVECTOR4 mApexColor, mCenterColor, mBaseColor;
 	};
 }
 

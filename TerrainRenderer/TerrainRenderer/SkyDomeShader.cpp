@@ -48,13 +48,13 @@ namespace TerrainRenderer
 
 
 	bool SkyDomeShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-		D3DXMATRIX projectionMatrix, D3DXVECTOR4 apexColor, D3DXVECTOR4 centerColor)
+		D3DXMATRIX projectionMatrix, D3DXVECTOR4 apexColor, D3DXVECTOR4 centerColor, D3DXVECTOR4 baseColor)
 	{
 		bool result;
 
 
 		// Set the shader parameters that it will use for rendering.
-		result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, apexColor, centerColor);
+		result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, apexColor, centerColor, baseColor);
 		if (!result)
 		{
 			return false;
@@ -275,7 +275,7 @@ namespace TerrainRenderer
 
 
 	bool SkyDomeShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-		D3DXMATRIX projectionMatrix, D3DXVECTOR4 apexColor, D3DXVECTOR4 centerColor)
+		D3DXMATRIX projectionMatrix, D3DXVECTOR4 apexColor, D3DXVECTOR4 centerColor, D3DXVECTOR4 baseColor)
 	{
 		HRESULT result;
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -326,6 +326,7 @@ namespace TerrainRenderer
 		// Copy the gradient color variables into the constant buffer.
 		dataPtr2->apexColor = apexColor;
 		dataPtr2->centerColor = centerColor;
+		dataPtr2->baseColor = baseColor;
 
 		// Unlock the constant buffer.
 		deviceContext->Unmap(mGradientBuffer, 0);

@@ -40,12 +40,14 @@ namespace TerrainRenderer
 		}
 
 		// Set the color at the top of the sky dome.
-		//mApexColor = D3DXVECTOR4(0.0f, 0.15f, 0.66f, 1.0f);
 		mApexColor = D3DXVECTOR4(0.10f, 0.30f, 0.90f, 1.0f);
 
 		// Set the color at the center of the sky dome.
-		//mCenterColor = D3DXVECTOR4(0.81f, 0.38f, 0.66f, 1.0f);
-		mCenterColor = D3DXVECTOR4(0.05f, 0.65f, 0.90f, 1.0f);
+		//mCenterColor = D3DXVECTOR4(0.05f, 0.65f, 0.90f, 1.0f);
+		mCenterColor = D3DXVECTOR4(0.20f, 0.65f, 0.90f, 1.0f);
+
+		// Set the color at the bottom of the sky dome
+		mBaseColor = D3DXVECTOR4(0.15f, 0.35f, 0.01f, 1.0f);
 
 		return true;
 	}
@@ -87,6 +89,10 @@ namespace TerrainRenderer
 		return mCenterColor;
 	}
 
+	D3DXVECTOR4 SkyDome::GetBaseColor()
+	{
+		return mBaseColor;
+	}
 
 	bool SkyDome::LoadSkyDomeModel(char* filename)
 	{

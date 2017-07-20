@@ -147,7 +147,9 @@ namespace TerrainRenderer
 		//cameraZ = -7.0f;
 
 		cameraX = 94.0f;
-		cameraY = 90.0f;
+		//cameraY = 90.0f;
+		//cameraY = 20.0f;
+		cameraY = 15.0f;
 		cameraZ = 94.0f;
 
 		mCamera->SetPosition(cameraX, cameraY, cameraZ);
@@ -166,21 +168,6 @@ namespace TerrainRenderer
 			MessageBox(hwnd, L"Could not initialize the terrain manager object.", L"Error", MB_OK);
 			return false;
 		}
-
-		//// Create the color shader object.
-		//m_ColorShader = new ColorShader;
-		//if (!m_ColorShader)
-		//{
-		//	return false;
-		//}
-
-		//// Initialize the color shader object.
-		//result = m_ColorShader->Initialize(mDirect3D->GetDevice(), hwnd);
-		//if (!result)
-		//{
-		//	MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
-		//	return false;
-		//}
 
 		// Create the timer object.
 		mTimer = new Timer;
@@ -543,19 +530,19 @@ namespace TerrainRenderer
 		keyDown = mInput->IsWPressed();
 		mPosition->MoveForward(keyDown);
 
-		if (keyDown && GENERATION_ENABLED)
-		{
-			mTerrainManager->GenerateChunks(mPosition);
-		}
+		//if (keyDown && GENERATION_ENABLED)
+		//{
+		//	mTerrainManager->GenerateChunks(mPosition);
+		//}
 
 		//moving backward
 		keyDown = mInput->IsSPressed();
 		mPosition->MoveBackward(keyDown);
 
-		if (keyDown && GENERATION_ENABLED)
-		{
-			mTerrainManager->GenerateChunks(mPosition);
-		}
+		//if (keyDown && GENERATION_ENABLED)
+		//{
+		//	mTerrainManager->GenerateChunks(mPosition);
+		//}
 
 		//moving up
 		keyDown = mInput->IsQPressed();
@@ -593,6 +580,11 @@ namespace TerrainRenderer
 		if (!result)
 		{
 			return false;
+		}
+
+		if (GENERATION_ENABLED)
+		{
+			mTerrainManager->GenerateChunks(mPosition);
 		}
 
 		return true;
@@ -635,7 +627,7 @@ namespace TerrainRenderer
 		// Render the sky dome using the sky dome shader.
 		mSkyDome->Render(mDirect3D->GetDeviceContext());
 		mSkyDomeShader->Render(mDirect3D->GetDeviceContext(), mSkyDome->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
-			mSkyDome->GetApexColor(), mSkyDome->GetCenterColor());
+			mSkyDome->GetApexColor(), mSkyDome->GetCenterColor(), mSkyDome->GetBaseColor());
 
 		//Once rendering is complete we turn back face culling and the Z buffer on again and resume rendering the rest of the scene as normal.
 
