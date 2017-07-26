@@ -91,20 +91,12 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
     // Multiply the texture color and the final light color to get the result.
     color = color * textureColor;
 
-    //add fogging to color somehow (lerp depending on position??)
-    
-    //if pixel position x or z is more than 128 units away from the camera position, its color will be full fog color
-    //if ((input.position.x >= cameraPosition.x + 128) || (input.position.z >= cameraPosition.z + 128))
-    //if ((input.position.y >= (cameraPosition.x + 0)))
-
-    //this kind of works, but it just covers the screen horizontally & doesn't cover distance. do pixels have xyz positions?
-        //the pixels have like screen space positions rather than game space, which is what cameraPosition is in
-    //if ((input.position.y <= (400)))
-    //{
-    //    color = fogColor;
-    //}
-
-    
-    return float4(lerp(color.rgb, fogColor, input.fogAmount), color.a);
-    //return color;
+    if (fogColor.x == 0 && fogColor.y == 0 && fogColor.z == 0)
+    {
+        return color;
+    }
+    else
+    {
+        return float4(lerp(color.rgb, fogColor, input.fogAmount), color.a);
+    }
 }

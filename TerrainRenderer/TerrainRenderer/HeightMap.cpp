@@ -91,15 +91,10 @@ namespace TerrainRenderer
 
 		perlinModule.SetFrequency(perlinModule.GetFrequency() - .4);
 
-		//testing scaling
-		//module::Add scaling;
-		
 		if (mIsScaleMap)
 		{
 			perlinModule.SetFrequency(perlinModule.GetFrequency() - .3);
 		}
-
-
 
 		//building the height map
 		heightMapBuilder.SetSourceModule(perlinModule);

@@ -69,7 +69,7 @@ namespace TerrainRenderer
 
 			heightMapGenerator.SetSeed(seed);
 
-			heightMapGenerator.Generate(mHeightMapFilenames[i], mHMWidth, mHMHeight);
+			heightMapGenerator.Generate(mHeightMapFilenames[i], HM_WIDTH, HM_HEIGHT);
 		}
 
 		//the filenames for the scaling chunks created from the big scaling map
@@ -97,7 +97,7 @@ namespace TerrainRenderer
 		}
 
 		heightMapGenerator.SetSeed(seed);
-		heightMapGenerator.Generate(mLargeScalingFilename, (mHMWidth * 3), (mHMHeight * 3));
+		heightMapGenerator.Generate(mLargeScalingFilename, (HM_WIDTH * 3), (HM_HEIGHT * 3));
 
 		// Create the input object.  The input object will be used to handle reading the keyboard and mouse input from the user.
 		mInput = new Input;
@@ -142,15 +142,18 @@ namespace TerrainRenderer
 		mCamera->GetViewMatrix(baseViewMatrix);
 
 		// Set the initial position of the camera.
-		//cameraX = 50.0f;
-		//cameraY = 15.0f;
-		//cameraZ = -7.0f;
-
-		cameraX = 94.0f;
-		//cameraY = 90.0f;
-		//cameraY = 20.0f;
-		cameraY = 15.0f;
-		cameraZ = 94.0f;
+		if (HM_HEIGHT == 64)
+		{
+			cameraX = 94.0f;
+			cameraY = 7.0f;
+			cameraZ = 94.0f;
+		}
+		else if (HM_HEIGHT == 128)
+		{
+			cameraX = 71.0f;
+			cameraY = 18.0f;
+			cameraZ = 190.0f;
+		}
 
 		mCamera->SetPosition(cameraX, cameraY, cameraZ);
 

@@ -320,6 +320,10 @@ namespace TerrainRenderer
 		MatrixBufferType* dataPtr;
 		LightBufferType* dataPtr2;
 
+		if (!FOG_ENABLED)
+		{
+			fogColor = D3DXVECTOR3(0.0, 0.0, 0.0);
+		}
 
 		// Transpose the matrices to prepare them for the shader.
 		D3DXMatrixTranspose(&world, &world);

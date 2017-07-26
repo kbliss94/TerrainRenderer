@@ -126,7 +126,7 @@ namespace TerrainRenderer
 		mVideoCardMemory = static_cast<int>((adapterDesc.DedicatedVideoMemory / 1024) / 1024);
 
 		//converting the name of the video card to a char array & storing it
-		error = wcstombs_s(&stringLength, mVideoCardDescription, mVCDescriptionSize, adapterDesc.Description, mVCDescriptionSize);
+		error = wcstombs_s((size_t*)&stringLength, mVideoCardDescription, mVCDescriptionSize, adapterDesc.Description, mVCDescriptionSize);
 		if (error != 0)
 		{
 			return false;

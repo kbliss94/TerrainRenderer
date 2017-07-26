@@ -13,6 +13,9 @@ const bool SCALING_ENABLED = true;
 const bool RANDOM_GENERATION = false;
 const bool QUADTREES_ENABLED = true;
 
+const int HM_WIDTH = 128;
+const int HM_HEIGHT = 128;
+
 #include "Input.h"
 #include "DirectX3D.h"
 #include "Camera.h"
@@ -57,7 +60,6 @@ namespace TerrainRenderer
 		Input* mInput;
 		DirectX3D* mDirect3D;
 		Camera* mCamera;
-		//ColorShader* m_ColorShader;
 		Timer* mTimer;
 		Position* mPosition;
 		FPS* mFPS;
@@ -72,8 +74,6 @@ namespace TerrainRenderer
 		SkyDomeShader* mSkyDomeShader;
 
 		const int mNumStartUpMaps = 9;
-		const int mHMWidth = 64;
-		const int mHMHeight = 64;
 
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;

@@ -10,23 +10,35 @@ namespace TerrainRenderer
 	{
 		mBottomRowOffsets = new vector<ChunkOffset>
 		{
-			{0, 0},
-			{63, 0}, 
-			{126, 0}
+			{ 0, 0 },
+			{ mChunkOffset, 0 },
+			{ mChunkOffset * 2, 0 }
+
+			//{0, 0},
+			//{63, 0}, 
+			//{126, 0}
 		};
 
 		mMiddleRowOffsets = new vector<ChunkOffset>
 		{
-			{0, 63},
-			{63, 63},
-			{126, 63}
+			{ 0, mChunkOffset },
+			{ mChunkOffset, mChunkOffset },
+			{ mChunkOffset * 2, mChunkOffset }
+
+			//{0, 63},
+			//{63, 63},
+			//{126, 63}
 		};
 
 		mTopRowOffsets = new vector<ChunkOffset>
 		{
-			{0, 126},
-			{63, 126},
-			{126, 126}
+			{ 0, mChunkOffset * 2 },
+			{ mChunkOffset, mChunkOffset * 2 },
+			{ mChunkOffset * 2, mChunkOffset * 2 }
+
+			//{0, 126},
+			//{63, 126},
+			//{126, 126}
 		};
 
 		mStartingGridPositions = new vector<ChunkOffset>
@@ -583,8 +595,10 @@ namespace TerrainRenderer
 		leftChunk.ReadFromFile(leftChunkFilename);
 		rightChunk.ReadFromFile(rightChunkFilename);
 
+		int borderOffset = HM_HEIGHT - 1;
+
 		//adding a weighted average border on the left side of the right chunk
-		int leftChunkBorder = 63;
+		int leftChunkBorder = borderOffset;
 		float weightChange = (float)(1.0f / mBorderWidth);
 		float leftWeight = 1.0f;
 		float rightWeight = 0.0f;
@@ -616,11 +630,11 @@ namespace TerrainRenderer
 		leftWeight = 0.0f;
 		rightWeight = 1.0f;
 
-		for (int i = 63; i > (63 - mBorderWidth); --i)
+		for (int i = borderOffset; i > (borderOffset - mBorderWidth); --i)
 		{
 			for (int j = 0; j < leftChunk.TellWidth(); ++j)
 			{
-				if (i == 63)
+				if (i == borderOffset)
 				{
 					leftChunk(i, j)->Red = (rightChunk(rightChunkBorder, j)->Red * rightWeight) + (leftChunk(i, j)->Red * leftWeight);
 					leftChunk(i, j)->Green = (rightChunk(rightChunkBorder, j)->Green * rightWeight) + (leftChunk(i, j)->Green * leftWeight);
@@ -649,8 +663,10 @@ namespace TerrainRenderer
 		topChunk.ReadFromFile(topChunkFilename);
 		bottomChunk.ReadFromFile(bottomChunkFilename);
 
+		int borderOffset = HM_HEIGHT - 1;
+
 		//adding a weighted average border on the top side of the bottom chunk
-		int topChunkBorder = 63;
+		int topChunkBorder = borderOffset;
 		float weightChange = (float)(1.0f / mBorderWidth);
 		float topWeight = 1.0f;
 		float bottomWeight = 0.0f;
@@ -682,11 +698,11 @@ namespace TerrainRenderer
 		topWeight = 0.0f;
 		bottomWeight = 1.0f;
 
-		for (int j = 63; j > (63 - mBorderWidth); --j)
+		for (int j = borderOffset; j > (borderOffset - mBorderWidth); --j)
 		{
 			for (int i = 0; i < topChunk.TellWidth(); ++i)
 			{
-				if (j == 63)
+				if (j == borderOffset)
 				{
 					topChunk(i, j)->Red = (bottomChunk(i, bottomChunkBorder)->Red * bottomWeight) + (topChunk(i, j)->Red * topWeight);
 					topChunk(i, j)->Green = (bottomChunk(i, bottomChunkBorder)->Green * bottomWeight) + (topChunk(i, j)->Green * topWeight);
@@ -715,11 +731,11 @@ namespace TerrainRenderer
 		float leftWeight = 1.0f;
 		float rightWeight = 0.0f;
 
-		int leftOffset = 63;
+		int leftOffset = HM_HEIGHT - 1;
 
 		for (int i = 0; i < mBorderWidth; ++i)
 		{
-			for (int j = 0; j < mHMHeight * mHMHeight; j += mHMHeight)
+			for (int j = 0; j < HM_HEIGHT * HM_HEIGHT; j += HM_HEIGHT)
 			{
 				if (i == 0)
 				{
@@ -742,11 +758,11 @@ namespace TerrainRenderer
 
 		int rightOffset = 0;
 
-		for (int i = (mHMHeight - 1); i >= (mHMHeight - mBorderWidth); --i)
+		for (int i = (HM_HEIGHT - 1); i >= (HM_HEIGHT - mBorderWidth); --i)
 		{
-			for (int j = 0; j < mHMHeight * mHMHeight; j += mHMHeight)
+			for (int j = 0; j < HM_HEIGHT * HM_HEIGHT; j += HM_HEIGHT)
 			{
-				if (i == (mHMHeight - 1))
+				if (i == (HM_HEIGHT - 1))
 				{
 					leftChunk[i + j].y = rightChunk[rightOffset + j].y;
 				}
@@ -769,23 +785,23 @@ namespace TerrainRenderer
 		float bottomWeight = 1.0f;
 		float topWeight = 0.0f;
 
-		int bottomOffset = mHMHeight * (mHMHeight - 1);	
+		int bottomOffset = HM_HEIGHT * (HM_HEIGHT - 1);
 
-		for (int i = 0; i < mHMHeight; ++i)
+		for (int i = 0; i < HM_HEIGHT; ++i)
 		{
 			topChunk[i].y = bottomChunk[bottomOffset].y;
 			++bottomOffset;
 		}
 
-		for (int i = mHMHeight; i < mHMHeight * mBorderWidth; ++i)
+		for (int i = HM_HEIGHT; i < HM_HEIGHT * mBorderWidth; ++i)
 		{
-			if (i % mHMHeight == 0)
+			if (i % HM_HEIGHT == 0)
 			{
 				bottomWeight -= weightChange;
 				topWeight += weightChange;
 			}
 
-			topChunk[i].y = (topChunk[i - mHMHeight].y * bottomWeight) + (topChunk[i].y * topWeight);
+			topChunk[i].y = (topChunk[i - HM_HEIGHT].y * bottomWeight) + (topChunk[i].y * topWeight);
 		}
 
 		//building the border for the bottom chunk
@@ -794,7 +810,7 @@ namespace TerrainRenderer
 
 		int topOffset = 0;
 
-		for (int i = mHMHeight * (mHMHeight - 1); i < (mHMHeight * mHMHeight); ++i)
+		for (int i = HM_HEIGHT * (HM_HEIGHT - 1); i < (HM_HEIGHT * HM_HEIGHT); ++i)
 		{
 			bottomChunk[i].y = topChunk[topOffset].y;
 			++topOffset;
@@ -803,15 +819,15 @@ namespace TerrainRenderer
 		bottomWeight += weightChange;
 		topWeight -= weightChange;
 
-		for (int i = (mHMHeight * (mHMHeight - 1) - 1); i >= (mHMHeight * (mHMHeight - mBorderWidth)); --i)
+		for (int i = (HM_HEIGHT * (HM_HEIGHT - 1) - 1); i >= (HM_HEIGHT * (HM_HEIGHT - mBorderWidth)); --i)
 		{
-			if (i % mHMHeight == 0)
+			if (i % HM_HEIGHT == 0)
 			{
 				bottomWeight += weightChange;
 				topWeight -= weightChange;
 			}
 			
-			bottomChunk[i].y = (bottomChunk[i].y * bottomWeight) + (bottomChunk[i + mHMHeight].y * topWeight);
+			bottomChunk[i].y = (bottomChunk[i].y * bottomWeight) + (bottomChunk[i + HM_HEIGHT].y * topWeight);
 		}
 	}
 	
@@ -831,13 +847,13 @@ namespace TerrainRenderer
 		BMP largeMap, smallMap;
 
 		largeMap.ReadFromFile(mLargeScalingMap);
-		smallMap.SetSize(64, 64);
+		smallMap.SetSize(HM_HEIGHT, HM_WIDTH);
 
 		int smallJIndex = 0;
 		int smallIIndex = 0;
-		int maxJ = 192;
+		int maxJ = mSMHeight;	//192
 		int minI = 0;
-		const int width = 64;
+		const int width = HM_WIDTH;
 
 		for (int k = 0; k < mNumGridRows * mNumGridRows; ++k)
 		{
@@ -865,7 +881,7 @@ namespace TerrainRenderer
 			{
 				smallIIndex = 0;
 				smallJIndex = 0;
-				maxJ = 192;
+				maxJ = mSMHeight;
 				minI += width;
 			}
 		}
@@ -877,7 +893,7 @@ namespace TerrainRenderer
 
 		mHeightMapGenerator.SetIsScaleMap(false);
 		mHeightMapGenerator.SetSeed(timeSeed);
-		mHeightMapGenerator.Generate(filename, mHMHeight, mHMWidth);
+		mHeightMapGenerator.Generate(filename, HM_HEIGHT, HM_WIDTH);
 
 		//apply scaling map here
 		if (mScalingFilenames.empty())
@@ -920,7 +936,6 @@ namespace TerrainRenderer
 				for (int j = 0; j < heightMap.TellHeight(); ++j)
 				{
 					//find the scaling factor for the pixel from the scaling map pixel
-					//float scalingFactor = 1 / scalingMap(i, j)->Red;
 					float scalingFactor = scalingMap(i, j)->Red / 256.0f;
 					//256 is the max color value, so scaling the red color to being between 0 & 1
 
@@ -928,11 +943,6 @@ namespace TerrainRenderer
 					heightMap(i, j)->Red *= scalingFactor;
 					heightMap(i, j)->Green *= scalingFactor;
 					heightMap(i, j)->Blue *= scalingFactor;
-					//heightMap(i, j)->Red /= scalingMap(i, j)->Red;
-					//heightMap(i, j)->Green /= scalingMap(i, j)->Green;
-					//heightMap(i, j)->Blue /= scalingMap(i, j)->Blue;
-
-					//r, g, b, alpha
 				}
 			}
 		}

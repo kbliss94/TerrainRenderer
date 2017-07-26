@@ -131,12 +131,10 @@ namespace TerrainRenderer
 		vector<ChunkOffset>* mMiddleRowOffsets;
 		vector<ChunkOffset>* mTopRowOffsets;
 
-		const int mBorderWidth = 10; //20;//10;
-		const int mHMHeight = 64;
-		const int mHMWidth = 64;
-		const int mSMHeight = 192;
-		const int mSMWidth = 192;
+		const int mBorderWidth = 20; //20;//10;
 		const int mNumGridRows = 3;
-		const int mChunkOffset = 63;
+		const int mSMHeight = HM_HEIGHT * mNumGridRows;
+		const int mSMWidth = HM_WIDTH * mNumGridRows;
+		const int mChunkOffset = HM_HEIGHT - 1;
 	};
 }
