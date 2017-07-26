@@ -508,6 +508,7 @@ namespace TerrainRenderer
 	{
 		bool keyDown, result;
 		float posX, posY, posZ, rotX, rotY, rotZ;
+		bool movement = false;
 
 
 		// Set the frame time for calculating the updated position.
@@ -530,19 +531,19 @@ namespace TerrainRenderer
 		keyDown = mInput->IsWPressed();
 		mPosition->MoveForward(keyDown);
 
-		//if (keyDown && GENERATION_ENABLED)
-		//{
-		//	mTerrainManager->GenerateChunks(mPosition);
-		//}
+		if (keyDown && GENERATION_ENABLED)
+		{
+			movement = true;
+		}
 
 		//moving backward
 		keyDown = mInput->IsSPressed();
 		mPosition->MoveBackward(keyDown);
 
-		//if (keyDown && GENERATION_ENABLED)
-		//{
-		//	mTerrainManager->GenerateChunks(mPosition);
-		//}
+		if (keyDown && GENERATION_ENABLED)
+		{
+			movement = true;
+		}
 
 		//moving up
 		keyDown = mInput->IsQPressed();
@@ -582,9 +583,11 @@ namespace TerrainRenderer
 			return false;
 		}
 
+		//if (GENERATION_ENABLED && movement)
 		if (GENERATION_ENABLED)
 		{
 			mTerrainManager->GenerateChunks(mPosition);
+			movement = false;
 		}
 
 		return true;
@@ -644,13 +647,15 @@ namespace TerrainRenderer
 		mFrustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
 
 		//rendering the terrain buffers
+		D3DXVECTOR4 fogColor = D3DXVECTOR4(0.20f, 0.65f, 0.90f, 1.0f);
+
 		mTerrainManager->Render(mDirect3D->GetDeviceContext(), mTerrainShader, worldMatrix, viewMatrix, projectionMatrix,
-			mLight->GetAmbientColor(), mLight->GetDiffuseColor(), mLight->GetDirection(), mFrustum);
+			mLight->GetAmbientColor(), mLight->GetDiffuseColor(), mLight->GetDirection(), mFrustum, mPosition, fogColor);
 
 		//Set the number of rendered terrain triangles since some were culled
 		if (QUADTREES_ENABLED)
 		{
-			result = mText->SetRenderCount(mTerrainManager->GetDrawCounts(), mDirect3D->GetDeviceContext());
+			result = mText->SetRenderCount(mTerrainManager->GetTriDrawCounts(), mTerrainManager->GetTriTotalCounts(), mDirect3D->GetDeviceContext());
 			if (!result)
 			{
 				return false;
@@ -658,7 +663,7 @@ namespace TerrainRenderer
 		}
 		else
 		{
-			result = mText->SetRenderCount(0, mDirect3D->GetDeviceContext());
+			result = mText->SetRenderCount(0, 0, mDirect3D->GetDeviceContext());
 			if (!result)
 			{
 				return false;

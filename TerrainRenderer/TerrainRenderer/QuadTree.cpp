@@ -95,16 +95,21 @@ namespace TerrainRenderer
 	void QuadTree::Render(Frustum* frustum, ID3D11DeviceContext* deviceContext, TerrainShader* shader)
 	{
 		// Reset the number of triangles that are drawn for this frame.
-		mDrawCount = 0;
+		mTriDrawCount = 0;
 
 		// Render each node that is visible starting at the parent node and moving down the tree.
 		RenderNode(mParentNode, frustum, deviceContext, shader);
 	}
 
 	//!Returns the total number of triangles that were drawn in the Render function call
-	int QuadTree::GetDrawCount()
+	int QuadTree::GetTriDrawCount()
 	{
-		return mDrawCount;
+		return mTriDrawCount;
+	}
+
+	int QuadTree::GetTriTotalCount()
+	{
+		return mTriangleCount;
 	}
 
 	void QuadTree::UpdateTerrainData()
@@ -520,6 +525,6 @@ namespace TerrainRenderer
 		shader->RenderShader(deviceContext, indexCount);
 
 		// Increase the count of the number of polygons that have been rendered during this frame.
-		mDrawCount += node->triangleCount;
+		mTriDrawCount += node->triangleCount;
 	}
 }

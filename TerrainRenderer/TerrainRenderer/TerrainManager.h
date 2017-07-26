@@ -40,8 +40,9 @@ namespace TerrainRenderer
 		bool Initialize(ID3D11Device* device, vector<char*>* heightMapFilenames, vector<char*>* scalingFilenames, char* largeScalingFilename, 
 			WCHAR* grassTextureFilename, WCHAR* slopeTextureFilename, WCHAR* rockTextureFilename);
 		void Shutdown();
+
 		void Render(ID3D11DeviceContext* context, TerrainShader* terrainShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, D3DXVECTOR4 ambientColor,
-			D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, Frustum* frustum);
+			D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, Frustum* frustum, Position* position, D3DXVECTOR4 fogColor);
 
 		//!Generates new chunks or deserializes chunks as the camera moves around
 		void GenerateChunks(Position* position);
@@ -58,7 +59,8 @@ namespace TerrainRenderer
 		*/
 		bool Deserialize(int gridX, int gridY, std::shared_ptr<Terrain>& terrainChunk);
 
-		int GetDrawCounts();
+		int GetTriDrawCounts();
+		int GetTriTotalCounts();
 
 	private:
 		void UpdateXPositionLeft();

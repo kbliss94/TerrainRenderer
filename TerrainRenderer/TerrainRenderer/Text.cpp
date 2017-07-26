@@ -16,6 +16,7 @@ namespace TerrainRenderer
 		m_sentence9 = 0;
 		m_sentence10 = 0;
 		m_sentence11 = 0;
+		m_sentence12 = 0;
 	}
 
 
@@ -133,6 +134,13 @@ namespace TerrainRenderer
 			return false;
 		}
 
+		// Initialize the twelfth sentence.
+		result = InitializeSentence(&m_sentence12, 32, device);
+		if (!result)
+		{
+			return false;
+		}
+
 		return true;
 	}
 
@@ -159,6 +167,7 @@ namespace TerrainRenderer
 		ReleaseSentence(&m_sentence9);
 		ReleaseSentence(&m_sentence10);
 		ReleaseSentence(&m_sentence11);
+		ReleaseSentence(&m_sentence12);
 
 		return;
 	}
@@ -231,6 +240,12 @@ namespace TerrainRenderer
 		}
 
 		result = RenderSentence(m_sentence11, deviceContext, FontShader, worldMatrix, orthoMatrix);
+		if (!result)
+		{
+			return false;
+		}
+
+		result = RenderSentence(m_sentence12, deviceContext, FontShader, worldMatrix, orthoMatrix);
 		if (!result)
 		{
 			return false;
@@ -682,20 +697,21 @@ namespace TerrainRenderer
 		return true;
 	}
 
-	bool Text::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
+	bool Text::SetRenderCount(int drawCount, int totalCount, ID3D11DeviceContext* deviceContext)
 	{
+		//setting up the render count string
 		char tempString[16];
 		char renderString[32];
 		bool result;
 
 		// Truncate the render count if it gets to large to prevent a buffer overflow.
-		if (count > 999999999)
+		if (drawCount > 999999999)
 		{
-			count = 999999999;
+			drawCount = 999999999;
 		}
 
 		// Convert the cpu integer to string format.
-		_itoa_s(count, tempString, 10);
+		_itoa_s(drawCount, tempString, 10);
 
 		// Setup the cpu string.
 		strcpy_s(renderString, "Render Count: ");
@@ -703,6 +719,28 @@ namespace TerrainRenderer
 
 		// Update the sentence vertex buffer with the new string information.
 		result = UpdateSentence(m_sentence11, renderString, 10, 290, 0.0f, 1.0f, 0.0f, deviceContext);
+		if (!result)
+		{
+			return false;
+		}
+
+		//setting up the culled count string
+		char countString[16];
+		char culledString[32];
+
+		if (totalCount > 999999999)
+		{
+			totalCount = 999999999;
+		}
+
+		int culledCount = totalCount - drawCount;
+
+		_itoa_s(culledCount, countString, 10);
+
+		strcpy_s(culledString, "Culled Count: ");
+		strcat_s(culledString, countString);
+
+		result = UpdateSentence(m_sentence12, culledString, 10, 310, 0.0f, 1.0f, 0.0f, deviceContext);
 		if (!result)
 		{
 			return false;

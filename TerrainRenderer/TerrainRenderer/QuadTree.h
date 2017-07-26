@@ -1,7 +1,7 @@
 #pragma once
 
 //globals
-const int MAX_TRIANGLES = 10000;
+const int MAX_TRIANGLES = 400;
 
 #include "Terrain.h"
 #include "Frustum.h"
@@ -39,7 +39,8 @@ namespace TerrainRenderer
 		void Shutdown();
 		void Render(Frustum* frustum, ID3D11DeviceContext* context, TerrainShader* shader);
 
-		int GetDrawCount();
+		int GetTriDrawCount();
+		int GetTriTotalCount();
 		void UpdateTerrainData();
 
 	private:
@@ -51,7 +52,7 @@ namespace TerrainRenderer
 		void RenderNode(NodeType* node, Frustum* frustum, ID3D11DeviceContext* deviceContext, TerrainShader* shader);
 
 	private:
-		int mTriangleCount, mDrawCount;
+		int mTriangleCount, mTriDrawCount;
 
 		//list of the vertices from the Terrain object for building the quad tree
 		VertexType* mVertexList;
