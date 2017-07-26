@@ -19,7 +19,8 @@ cbuffer LightBuffer
     //for fogging
     float3 cameraPosition;
     float padding2;
-    float4 fogColor;
+    float3 fogColor;
+    float padding3;
 };
 
 //typedefs
@@ -28,6 +29,8 @@ struct PixelInputType
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
+    //for fogging
+    float fogAmount : FOG;
 };
 
 //pixel shader
@@ -101,7 +104,7 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
     //    color = fogColor;
     //}
 
-
-
-    return color;
+    
+    return float4(lerp(color.rgb, fogColor, input.fogAmount), color.a);
+    //return color;
 }

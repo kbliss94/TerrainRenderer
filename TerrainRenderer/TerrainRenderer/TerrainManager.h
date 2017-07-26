@@ -42,7 +42,7 @@ namespace TerrainRenderer
 		void Shutdown();
 
 		void Render(ID3D11DeviceContext* context, TerrainShader* terrainShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, D3DXVECTOR4 ambientColor,
-			D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, Frustum* frustum, Position* position, D3DXVECTOR4 fogColor);
+			D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, Frustum* frustum, Position* position, D3DXVECTOR3 fogColor);
 
 		//!Generates new chunks or deserializes chunks as the camera moves around
 		void GenerateChunks(Position* position);

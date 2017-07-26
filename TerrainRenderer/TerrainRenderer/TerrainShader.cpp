@@ -41,7 +41,7 @@ namespace TerrainRenderer
 	}
 	
 	bool TerrainShader::Render(ID3D11DeviceContext* context, int indexCount, D3DXMATRIX world, D3DXMATRIX view,
-			D3DXMATRIX projection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, D3DXVECTOR3 cameraPosition, D3DXVECTOR4 fogColor,
+			D3DXMATRIX projection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, D3DXVECTOR3 cameraPosition, D3DXVECTOR3 fogColor,
 			ID3D11ShaderResourceView* grassTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* rockTexture)
 	{
 		bool result;
@@ -311,7 +311,7 @@ namespace TerrainRenderer
 
 
 	bool TerrainShader::SetShaderParameters(ID3D11DeviceContext* context, D3DXMATRIX world, D3DXMATRIX view,
-			D3DXMATRIX projection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, D3DXVECTOR3 cameraPosition, D3DXVECTOR4 fogColor,
+			D3DXMATRIX projection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, D3DXVECTOR3 cameraPosition, D3DXVECTOR3 fogColor,
 			ID3D11ShaderResourceView* grassTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* rockTexture)
 	{
 		HRESULT result;
@@ -340,6 +340,9 @@ namespace TerrainRenderer
 		dataPtr->world = world;
 		dataPtr->view = view;
 		dataPtr->projection = projection;
+		dataPtr->cameraPosition = cameraPosition;
+		dataPtr->fogStart = mFogStart;
+		dataPtr->fogRange = mFogRange;
 
 		// Unlock the constant buffer.
 		context->Unmap(mMatrixBuffer, 0);

@@ -185,29 +185,22 @@ namespace TerrainRenderer
 	}
 
 	void TerrainManager::Render(ID3D11DeviceContext* context, TerrainShader* terrainShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection,
-		D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, Frustum* frustum, Position* position, D3DXVECTOR4 fogColor)
+		D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, Frustum* frustum, Position* position, D3DXVECTOR3 fogColor)
 	{
 		//send camera position & fog color in render call
 		float posX, posY, posZ;
 		position->GetPosition(posX, posY, posZ);
 		D3DXVECTOR3 cameraPosition = D3DXVECTOR3(posX, posY, posZ);
-		D3DXVECTOR4 skyDomeColor = D3DXVECTOR4(0.20f, 0.65f, 0.90f, 1.0f);
+
+		terrainShader->SetShaderParameters(context, world, view, projection, ambientColor, diffuseColor, lightDirection, cameraPosition, fogColor,
+			mGridBottomRow[0]->GetGrassTexture(), mGridBottomRow[0]->GetSlopeTexture(), mGridBottomRow[0]->GetRockTexture());
 
 		if (QUADTREES_ENABLED)
 		{
 			for (int i = 0; i < mNumGridRows; ++i)
 			{
-				
-				terrainShader->SetShaderParameters(context, world, view, projection, ambientColor, diffuseColor, lightDirection, cameraPosition, skyDomeColor,
-					mGridBottomRow[i]->GetGrassTexture(), mGridBottomRow[i]->GetSlopeTexture(), mGridBottomRow[i]->GetRockTexture());
 				mQuadBottomRow[i]->Render(frustum, context, terrainShader);
-
-				terrainShader->SetShaderParameters(context, world, view, projection, ambientColor, diffuseColor, lightDirection, cameraPosition, skyDomeColor,
-					mGridMiddleRow[i]->GetGrassTexture(), mGridMiddleRow[i]->GetSlopeTexture(), mGridMiddleRow[i]->GetRockTexture());
 				mQuadMiddleRow[i]->Render(frustum, context, terrainShader);
-
-				terrainShader->SetShaderParameters(context, world, view, projection, ambientColor, diffuseColor, lightDirection, cameraPosition, skyDomeColor,
-					mGridTopRow[i]->GetGrassTexture(), mGridTopRow[i]->GetSlopeTexture(), mGridTopRow[i]->GetRockTexture());
 				mQuadTopRow[i]->Render(frustum, context, terrainShader);
 			}
 		}
@@ -216,16 +209,8 @@ namespace TerrainRenderer
 			for (int i = 0; i < mNumGridRows; ++i)
 			{
 				(mGridBottomRow[i])->Render(context);
-				terrainShader->Render(context, mGridBottomRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection, 
-					cameraPosition, skyDomeColor, mGridBottomRow[i]->GetGrassTexture(), mGridBottomRow[i]->GetSlopeTexture(), mGridBottomRow[i]->GetRockTexture());
-
 				(mGridMiddleRow[i])->Render(context);
-				terrainShader->Render(context, mGridMiddleRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection, 
-					cameraPosition, skyDomeColor, mGridMiddleRow[i]->GetGrassTexture(), mGridMiddleRow[i]->GetSlopeTexture(), mGridMiddleRow[i]->GetRockTexture());
-
 				(mGridTopRow[i])->Render(context);
-				terrainShader->Render(context, mGridTopRow[i]->GetIndexCount(), world, view, projection, ambientColor, diffuseColor, lightDirection, 
-					cameraPosition, skyDomeColor, mGridTopRow[i]->GetGrassTexture(), mGridTopRow[i]->GetSlopeTexture(), mGridTopRow[i]->GetRockTexture());
 			}
 		}
 	}

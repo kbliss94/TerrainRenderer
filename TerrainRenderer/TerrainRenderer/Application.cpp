@@ -647,7 +647,7 @@ namespace TerrainRenderer
 		mFrustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
 
 		//rendering the terrain buffers
-		D3DXVECTOR4 fogColor = D3DXVECTOR4(0.20f, 0.65f, 0.90f, 1.0f);
+		D3DXVECTOR3 fogColor = mSkyDome->GetCenterColor();
 
 		mTerrainManager->Render(mDirect3D->GetDeviceContext(), mTerrainShader, worldMatrix, viewMatrix, projectionMatrix,
 			mLight->GetAmbientColor(), mLight->GetDiffuseColor(), mLight->GetDirection(), mFrustum, mPosition, fogColor);

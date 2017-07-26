@@ -9,6 +9,11 @@ cbuffer MatrixBuffer
     matrix worldMatrix;
     matrix viewMatrix;
     matrix projectionMatrix;
+    //for fogging
+    float3 cameraPosition;
+    float fogStart;
+    float3 padding;
+    float fogRange;
 };
 
 //typedefs
@@ -24,6 +29,9 @@ struct PixelInputType
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
+    //for fogging
+    float3 worldPosition : WORLDPOS;
+    float fogAmount : FOG;
 };
 
 //vertex shader
@@ -47,6 +55,12 @@ PixelInputType TerrainVertexShader(VertexInputType input)
 	
     // Normalize the normal vector.
     output.normal = normalize(output.normal);
+
+    //setting the world position
+    output.worldPosition = mul(input.position, worldMatrix).xyz;
+
+    //calculating the amount of fog
+    output.fogAmount = saturate((distance(cameraPosition, output.worldPosition) - fogStart) / (fogRange));
 
     return output;
 }
