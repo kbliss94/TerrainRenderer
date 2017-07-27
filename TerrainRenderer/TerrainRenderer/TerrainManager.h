@@ -123,6 +123,13 @@ namespace TerrainRenderer
 		vector<std::shared_ptr<Terrain>> mGridMiddleColumn;
 		vector<std::shared_ptr<Terrain>> mGridRightColumn;
 
+		//pre-loaded data ready to be rendered
+		vector<std::shared_ptr<Terrain>> mTopRowReserve;
+		vector<std::shared_ptr<Terrain>> mRightColumnReserve;
+		vector<std::shared_ptr<Terrain>> mBottomRowReserve;
+		vector<std::shared_ptr<Terrain>> mLeftColumnReserve;
+		//
+
 		vector<std::shared_ptr<QuadTree>> mQuadBottomRow;
 		vector<std::shared_ptr<QuadTree>> mQuadMiddleRow;
 		vector<std::shared_ptr<QuadTree>> mQuadTopRow;

@@ -13,10 +13,6 @@ namespace TerrainRenderer
 			{ 0, 0 },
 			{ mChunkOffset, 0 },
 			{ mChunkOffset * 2, 0 }
-
-			//{0, 0},
-			//{63, 0}, 
-			//{126, 0}
 		};
 
 		mMiddleRowOffsets = new vector<ChunkOffset>
@@ -24,10 +20,6 @@ namespace TerrainRenderer
 			{ 0, mChunkOffset },
 			{ mChunkOffset, mChunkOffset },
 			{ mChunkOffset * 2, mChunkOffset }
-
-			//{0, 63},
-			//{63, 63},
-			//{126, 63}
 		};
 
 		mTopRowOffsets = new vector<ChunkOffset>
@@ -35,10 +27,6 @@ namespace TerrainRenderer
 			{ 0, mChunkOffset * 2 },
 			{ mChunkOffset, mChunkOffset * 2 },
 			{ mChunkOffset * 2, mChunkOffset * 2 }
-
-			//{0, 126},
-			//{63, 126},
-			//{126, 126}
 		};
 
 		mStartingGridPositions = new vector<ChunkOffset>
@@ -94,6 +82,21 @@ namespace TerrainRenderer
 			mQuadMiddleRow[i] = make_shared<QuadTree>();
 			mQuadTopRow[i] = make_shared<QuadTree>();
 		}
+
+		//setting up reserve height map data
+		mTopRowReserve.resize(mNumGridRows);
+		mRightColumnReserve.resize(mNumGridRows);
+		mBottomRowReserve.resize(mNumGridRows);
+		mLeftColumnReserve.resize(mNumGridRows);
+
+		for (int i = 0; i < mNumGridRows; ++i)
+		{
+			mTopRowReserve[i] = make_shared<Terrain>();
+			mRightColumnReserve[i] = make_shared<Terrain>();
+			mBottomRowReserve[i] = make_shared<Terrain>();
+			mLeftColumnReserve[i] = make_shared<Terrain>();
+		}
+		//
 	}
 
 	TerrainManager::TerrainManager(const TerrainManager& rhs)
@@ -851,7 +854,7 @@ namespace TerrainRenderer
 
 		int smallJIndex = 0;
 		int smallIIndex = 0;
-		int maxJ = mSMHeight;	//192
+		int maxJ = mSMHeight;	
 		int minI = 0;
 		const int width = HM_WIDTH;
 

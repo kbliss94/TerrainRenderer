@@ -1,7 +1,7 @@
 #pragma once
 
 //globals
-const int MAX_TRIANGLES = 1000;
+const int MAX_TRIANGLES = 2000;
 
 #include "Terrain.h"
 #include "Frustum.h"
