@@ -92,9 +92,6 @@ namespace TerrainRenderer
 
 		void ApplyScalingMap(const char* heightMapFilename, const char* scalingMapFilename);
 
-		//!The oldMapFilename will contain the map from the newMapFilename
-		void SetNewHeightMap(const char* oldMapFilename, const char* newMapFilename);
-
 	private:
 		struct ChunkOffset
 		{
@@ -131,7 +128,6 @@ namespace TerrainRenderer
 		vector<std::shared_ptr<Terrain>> mRightColumnReserve;
 		vector<std::shared_ptr<Terrain>> mBottomRowReserve;
 		vector<std::shared_ptr<Terrain>> mLeftColumnReserve;
-		//
 
 		vector<std::shared_ptr<QuadTree>> mQuadBottomRow;
 		vector<std::shared_ptr<QuadTree>> mQuadMiddleRow;
@@ -146,7 +142,7 @@ namespace TerrainRenderer
 		bool mUpdateBottomReserveRow;
 		bool mUpdateLeftReserveColumn;
 
-		const int mBorderWidth = 20; //20;//10;
+		const int mBorderWidth = 20; 
 		const int mNumGridRows = 3;
 		const int mSMHeight = HM_HEIGHT * mNumGridRows;
 		const int mSMWidth = HM_WIDTH * mNumGridRows;

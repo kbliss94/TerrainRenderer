@@ -125,7 +125,6 @@ namespace TerrainRenderer
 			mLeftColumnReserve[i]->SetHeightMapFilename(mReserveMapFilename);
 			mLeftColumnReserve[i]->SetGridPosition((*mStartingReservePositions)[i].x, (*mStartingReservePositions)[i].z);
 		}
-		//
 	}
 
 	TerrainManager::TerrainManager(const TerrainManager& rhs)
@@ -166,8 +165,6 @@ namespace TerrainRenderer
 			//getting rid of the used scaling maps
 			mScalingFilenames.clear();
 		}
-
-		//*then the scaling maps wouldn't need to be stored in Terrain
 
 		//stitch together the height maps here
 		if (STITCHING_ENABLED)
@@ -226,32 +223,24 @@ namespace TerrainRenderer
 			if (!Deserialize(mTopRowReserve[i]->GetGridPositionX(), mTopRowReserve[i]->GetGridPositionY(), mTopRowReserve[i]))
 			{
 				GenerateNewHeightMap(mTopRowReserve[i]->GetHeightMapFilename());
-
-				//loading in the data for the new height map
 				mTopRowReserve[i]->UpdateHeightMap();
 			}
 
 			if (!Deserialize(mRightColumnReserve[i]->GetGridPositionX(), mRightColumnReserve[i]->GetGridPositionY(), mRightColumnReserve[i]))
 			{
 				GenerateNewHeightMap(mRightColumnReserve[i]->GetHeightMapFilename());
-
-				//loading in the data for the new height map
 				mRightColumnReserve[i]->UpdateHeightMap();
 			}
 
 			if (!Deserialize(mBottomRowReserve[i]->GetGridPositionX(), mBottomRowReserve[i]->GetGridPositionY(), mBottomRowReserve[i]))
 			{
 				GenerateNewHeightMap(mBottomRowReserve[i]->GetHeightMapFilename());
-
-				//loading in the data for the new height map
 				mBottomRowReserve[i]->UpdateHeightMap();
 			}
 
 			if (!Deserialize(mLeftColumnReserve[i]->GetGridPositionX(), mLeftColumnReserve[i]->GetGridPositionY(), mLeftColumnReserve[i]))
 			{
 				GenerateNewHeightMap(mLeftColumnReserve[i]->GetHeightMapFilename());
-
-				//loading in the data for the new height map
 				mLeftColumnReserve[i]->UpdateHeightMap();
 			}
 		}
@@ -261,7 +250,7 @@ namespace TerrainRenderer
 
 	void TerrainManager::Shutdown()
 	{
-		//should delete all serialized files?
+
 	}
 
 	void TerrainManager::Render(ID3D11DeviceContext* context, TerrainShader* terrainShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection,
@@ -1047,12 +1036,5 @@ namespace TerrainRenderer
 		}
 
 		heightMap.WriteToFile(heightMapFilename);
-	}
-
-	void TerrainManager::SetNewHeightMap(const char* oldMapFilename, const char* newMapFilename)
-	{
-		BMP newMap;
-		newMap.ReadFromFile(newMapFilename);
-		newMap.WriteToFile(oldMapFilename);
 	}
 }

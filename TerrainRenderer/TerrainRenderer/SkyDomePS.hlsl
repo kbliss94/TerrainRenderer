@@ -28,13 +28,12 @@ float4 SkyDomePixelShader(PixelInputType input) : SV_TARGET
     // Determine the position on the sky dome where this pixel is located.
     height = input.domePosition.y;
 
-    if (height < -0.3)
+    if (height < -0.4)
     {
         outputColor = baseColor;
-        //outputColor = centerColor;
     }
 
-    if (-0.3 <= height && height < 0.0)
+    if (-0.4 <= height && height < 0.0)
     {
         outputColor = centerColor;
     }
