@@ -148,6 +148,11 @@ namespace TerrainRenderer
 		mGridPositionY = y;
 	}
 
+	void Terrain::SetHeightMapFilename(char* filename)
+	{
+		mHeightMapFilename = filename;
+	}
+
 	char* Terrain::GetHeightMapFilename()
 	{
 		return mHeightMapFilename;
@@ -297,17 +302,7 @@ namespace TerrainRenderer
 
 	void Terrain::ShutdownHeightMap()
 	{
-		//if (mHeightMap)
-		//{
-		//	delete[] mHeightMap;
-		//	mHeightMap = 0;
-		//}
 
-		//if (mScalingMap)
-		//{
-		//	delete[] mScalingMap;
-		//	mScalingMap = 0;
-		//}
 	}
 
 	bool Terrain::CalculateNormals()
@@ -894,7 +889,6 @@ namespace TerrainRenderer
 		context->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case a line list.
-		//context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 }

@@ -503,6 +503,8 @@ namespace TerrainRenderer
 			return false;
 		}
 
+		mTerrainManager->Update();
+
 		return result;
 	}
 

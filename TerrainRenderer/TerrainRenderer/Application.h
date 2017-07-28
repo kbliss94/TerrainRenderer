@@ -79,7 +79,6 @@ namespace TerrainRenderer
 		vector<char*> mScalingFilenames;
 		char* mLargeScalingFilename;
 
-		//WCHAR* mGrassFilename = L"..//TerrainRenderer//data//grass.dds";
 		WCHAR* mGrassFilename = L"..//TerrainRenderer//data//grass1.dds";
 		WCHAR* mSlopeFilename = L"..//TerrainRenderer//data//rock.dds";
 		WCHAR* mRockFilename = L"..//TerrainRenderer//data//snow.dds";

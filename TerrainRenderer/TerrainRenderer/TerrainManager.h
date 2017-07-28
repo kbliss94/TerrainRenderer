@@ -1,14 +1,12 @@
 #pragma once
 
 #include "Terrain.h"
-//#include "ColorShader.h"
 #include "TerrainShader.h"
 #include "Position.h"
 #include "EasyBMP.h"
 #include "HeightMap.h"
 #include "QuadTree.h"
 
-//below is used for cereal
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/memory.hpp>
@@ -43,6 +41,9 @@ namespace TerrainRenderer
 
 		void Render(ID3D11DeviceContext* context, TerrainShader* terrainShader, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, D3DXVECTOR4 ambientColor,
 			D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, Frustum* frustum, Position* position, D3DXVECTOR3 fogColor);
+
+		//!Updates reserved data if necessary
+		void Update();
 
 		//!Generates new chunks or deserializes chunks as the camera moves around
 		void GenerateChunks(Position* position);
@@ -110,10 +111,12 @@ namespace TerrainRenderer
 
 		string mSerializationFilename = "..//TerrainRenderer//data//chunkData//chunk";
 		vector<ChunkOffset>* mStartingGridPositions;
+		vector<ChunkOffset>* mStartingReservePositions;
 		vector<char*> mHeightMapFilenames;
 		vector<char*> mScalingFilenames;
 		char* mLargeScalingMap;
 		char* mScalingFilenameStart = "..//TerrainRenderer//data//scaling";
+		char* mReserveMapFilename = "..//TerrainRenderer//data//reserveMap";
 
 		vector<std::shared_ptr<Terrain>> mGridBottomRow;
 		vector<std::shared_ptr<Terrain>> mGridMiddleRow;
@@ -137,6 +140,11 @@ namespace TerrainRenderer
 		vector<ChunkOffset>* mBottomRowOffsets;
 		vector<ChunkOffset>* mMiddleRowOffsets;
 		vector<ChunkOffset>* mTopRowOffsets;
+
+		bool mUpdateTopReserveRow;
+		bool mUpdateRightReserveColumn;
+		bool mUpdateBottomReserveRow;
+		bool mUpdateLeftReserveColumn;
 
 		const int mBorderWidth = 20; //20;//10;
 		const int mNumGridRows = 3;

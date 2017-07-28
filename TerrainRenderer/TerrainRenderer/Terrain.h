@@ -81,6 +81,7 @@ namespace TerrainRenderer
 		int GetGridPositionY();
 		void SetGridPosition(int x, int y);
 
+		void SetHeightMapFilename(char* filename);
 		char* GetHeightMapFilename();
 
 		vector<HeightMapData>& GetHeightMap();
